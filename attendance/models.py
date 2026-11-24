@@ -19,6 +19,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from attendance.methods.punches import attendance_sessions, worked_session_seconds
 from attendance.methods.utils import (
     MONTH_MAPPING,
     attendance_date_validate,
@@ -708,9 +709,7 @@ class Attendance(HorillaModel):
         """
         This method is used to return the activites and count of activites comes for an attendance
         """
-        activities = AttendanceActivity.objects.filter(
-            attendance_date=self.attendance_date, employee_id=self.employee_id
-        )
+        activities = attendance_sessions(self)
         return {"query": activities, "count": activities.count()}
 
     def requested_fields(self):
@@ -728,35 +727,25 @@ class Attendance(HorillaModel):
         """
         This method is used to get the last attendance activity if exists
         """
-        activities = AttendanceActivity.objects.filter(
-            employee_id=self.employee_id,
-            attendance_date=self.attendance_date,
-            clock_out__isnull=null_activity,
-        ).order_by("id")
-        return activities.last()
+        return attendance_sessions(self).filter(
+            clock_out__isnull=null_activity
+        ).order_by("id").last()
 
     def get_at_work_from_activities(self):
-        """
-        This method is used to retun the at work calculated from the activities
-        """
-        activities = AttendanceActivity.objects.filter(
-            attendance_date=self.attendance_date, employee_id=self.employee_id
-        ).order_by("clock_in")
-        at_work_seconds = 0
-        now = datetime.now()
-        for activity in activities:
-            out_time = activity.clock_out
-            if out_time is None:
-                combined_out = datetime.combine(
-                    now, dt.time(hour=now.hour, minute=now.minute, second=now.second)
-                )
-            else:
-                combined_out = datetime.combine(activity.clock_out_date, out_time)
-            in_time = activity.clock_in
-            combined_in = datetime.combine(activity.clock_in_date, in_time)
-            diffs = combined_out - combined_in
-            at_work_seconds = at_work_seconds + diffs.total_seconds()
-        return at_work_seconds
+        """Use the daily total for closed or manual records, and live time for an open session."""
+        activities = list(attendance_sessions(self))
+        has_open_session = self.attendance_clock_out is None and any(
+            activity.clock_out is None
+            and activity.clock_out_date is None
+            and activity.out_datetime is None
+            for activity in activities
+        )
+        open_until = timezone.localtime() if has_open_session else None
+        worked = worked_session_seconds(activities, open_until=open_until)
+        stored = self.attendance_worked_hour or "00:00"
+        if has_open_session or format_time(worked) == stored:
+            return worked
+        return strtime_seconds(stored)
 
     def hours_pending(self):
         """
@@ -1092,9 +1081,7 @@ class Attendance(HorillaModel):
         # Custom delete logic
         # Perform additional operations before deleting the object
         with contextlib.suppress(Exception):
-            AttendanceActivity.objects.filter(
-                attendance_date=self.attendance_date, employee_id=self.employee_id
-            ).delete()
+            attendance_sessions(self).delete()
         # Call the superclass delete() method to delete the object
         super().delete(*args, **kwargs)
 
@@ -1198,14 +1185,10 @@ class Attendance(HorillaModel):
 
     def clean(self, *args, **kwargs):
         super().clean(*args, **kwargs)
-        now = datetime.now().time()
-        today = datetime.today().date()
-
-        # Convert to time if it's a string
-        if isinstance(self.attendance_clock_out, str):
-            out_time = datetime.strptime(self.attendance_clock_out, "%H:%M:%S").time()
-        else:
-            out_time = self.attendance_clock_out
+        local_now = timezone.localtime()
+        out_time = self.attendance_clock_out
+        if isinstance(out_time, str):
+            out_time = dt.time.fromisoformat(out_time)
 
         if (
             self.attendance_clock_in_date
@@ -1228,8 +1211,8 @@ class Attendance(HorillaModel):
                 }
             )
 
-        if self.attendance_clock_out_date and self.attendance_clock_out_date >= today:
-            if out_time > now:
+        if out_time is not None and self.attendance_clock_out_date:
+            if (self.attendance_clock_out_date, out_time) > (local_now.date(), local_now.time()):
                 raise ValidationError(
                     {"attendance_clock_out": "Check-out time cannot be in the future"}
                 )

@@ -110,6 +110,28 @@ def restore_natural(employee, date):
         record.delete()  # made by the regularisation alone: nothing else puts it there
 
 
+def detach_moved_attendance(previous):
+    """Remove attendance-derived values from the old day while keeping its own records."""
+    from attendance.models import WorkRecords
+
+    record = WorkRecords.objects.filter(
+        employee_id=previous.employee_id, date=previous.attendance_date,
+        attendance_id=previous.pk,
+    ).first()
+    if record is None:
+        return
+    record.attendance_id = None
+    record.is_attendance_record = False
+    record.at_work = record.min_hour = "00:00"
+    record.at_work_second = record.min_hour_second = 0
+    record.day_percentage = 0
+    record.work_record_type = "DFT"
+    record.message = ""
+    record.save()
+    restore_natural(previous.employee_id, previous.attendance_date)
+    apply_resolution_for(previous.employee_id, previous.attendance_date)
+
+
 def _leave_covering(employee, date):
     """An approved leave that counts ``date`` as leave, or None."""
     try:

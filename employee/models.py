@@ -20,6 +20,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from PIL import Image
 
@@ -358,26 +359,14 @@ class Employee(models.Model):
         This method is used to the employees current day shift status
         """
         if apps.is_installed("attendance"):
-            today = datetime.today()
-            yesterday = today - timedelta(days=1)
-            today_attendance = None
-            yesterday_attendance = None
-            attendances = list(
-                self.employee_attendances.filter(
-                    attendance_date__in=[yesterday, today]
-                ).order_by("attendance_date")
-            )
+            from attendance.methods.punches import current_open_attendance
 
-            if len(attendances) == 1:
-                yesterday_attendance, today_attendance = attendances[0], None
-            elif len(attendances) == 2:
-                yesterday_attendance, today_attendance = attendances
-            else:
-                yesterday_attendance, today_attendance = None, None
-
-            attendance = today_attendance
-            if not today_attendance:
-                attendance = yesterday_attendance
+            today = timezone.localdate()
+            attendance = current_open_attendance(self, today)
+            if attendance is None:
+                attendance = self.employee_attendances.filter(
+                    attendance_date__in=(today - timedelta(days=1), today)
+                ).order_by("-attendance_date").first()
             minimum_hour_seconds = strtime_seconds(
                 getattr(attendance, "minimum_hour", "0")
             )

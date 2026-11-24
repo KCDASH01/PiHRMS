@@ -6,14 +6,16 @@ This module is used to write custom template filters.
 """
 
 import base64
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from itertools import groupby
 
 from django import template
 from django.forms.widgets import SelectMultiple, Textarea
 from django.template import TemplateSyntaxError
+from django.utils import timezone
 
-from attendance.models import Attendance, AttendanceValidationCondition
+from attendance.methods.punches import current_open_attendance
+from attendance.models import AttendanceValidationCondition
 from attendance.views.views import strtime_seconds
 from base.models import EmployeeShiftSchedule
 from employee.models import Employee
@@ -71,27 +73,10 @@ def is_clocked_in(user):
         user    : request.user
     """
 
-    try:
-        employee = user.employee_get
-    except:
-        return False
-    today = date.today()
-    yesterday = today - timedelta(days=1)
-    last_attendance = (
-        employee.employee_attendances.filter(attendance_date__in=[yesterday, today])
-        .order_by("attendance_date", "id")
-        .last()
-    )
-    if last_attendance is not None:
-        last_activity = (
-            employee.employee_attendance_activities.filter(
-                attendance_date=last_attendance.attendance_date
-            )
-            .order_by("id")
-            .last()
-        )
-        return False if last_activity is None else last_activity.clock_out is None
-    return False
+    employee = getattr(user, "employee_get", None)
+    return employee is not None and current_open_attendance(
+        employee, timezone.localdate()
+    ) is not None
 
 
 class DynamicRegroupNode(template.Node):

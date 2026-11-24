@@ -177,6 +177,7 @@ class MyAttendanceList(MyAttendancesListView):
         "attendance_date__gte",
         "attendance_date__lte",
     )
+    explicit_filter_fields = (*quick_date_fields, "date_attendance")
 
     def get_queryset(self):
         queryset = super().get_queryset()

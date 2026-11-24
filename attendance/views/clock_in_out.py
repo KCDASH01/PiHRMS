@@ -6,27 +6,30 @@ This module is used register endpoints to the check-in check-out functionalities
 
 import ipaddress
 import logging
-
-from django.shortcuts import render
-
-from horilla.http.response import HorillaRedirect
-
-logger = logging.getLogger(__name__)
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta, timezone as utc_timezone
 
 from django.contrib import messages
-from django.db.models import Q
-from django.http import HttpResponse
-from django.utils import timezone
+from django.db import transaction
+from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
+from attendance.methods.punches import (
+    PunchConflict,
+    active_attendance,
+    attendance_sessions,
+    local_punch_time,
+    lock_punches,
+    open_sessions,
+    request_punch_time,
+    session_end,
+    session_start,
+    worked_session_seconds,
+)
 from attendance.methods.utils import (
-    activity_datetime,
     employee_exists,
     format_time,
     geofence_denial_web,
     get_client_ip,
-    overtime_calculation,
     shift_schedule_today,
     strtime_seconds,
 )
@@ -38,13 +41,12 @@ from attendance.models import (
     GraceTime,
 )
 from attendance.views.views import attendance_validate
-from base.context_processors import (
-    enable_late_come_early_out_tracking,
-    timerunner_enabled,
-)
+from base.context_processors import enable_late_come_early_out_tracking
 from base.models import AttendanceAllowedIP, Company, EmployeeShiftDay
 from horilla.decorators import hx_request_required, login_required
-from horilla.horilla_middlewares import _thread_locals
+from horilla.http.response import HorillaRedirect
+
+logger = logging.getLogger(__name__)
 
 
 def late_come_create(attendance):
@@ -83,7 +85,6 @@ def late_come(attendance, start_time, end_time, shift):
         return
     if not enable_late_come_early_out_tracking(None).get("tracking"):
         return
-    request = getattr(_thread_locals, "request", None)
     now_sec = strtime_seconds(attendance.attendance_clock_in.strftime("%H:%M"))
     mid_day_sec = strtime_seconds("12:00")
 
@@ -107,97 +108,101 @@ def late_come(attendance, start_time, end_time, shift):
             now_sec -= grace_time.allowed_time_in_secs
     else:
         pass
-    if start_time > end_time and start_time != end_time:
-        # night shift
-        if now_sec < mid_day_sec:
-            # Here  attendance or attendance activity for new day night shift
-            late_come_create(attendance)
-        elif now_sec > start_time:
-            # Here  attendance or attendance activity for previous day night shift
-            late_come_create(attendance)
-    elif start_time < now_sec:
+    is_late = now_sec > start_time or (start_time > end_time and now_sec < mid_day_sec)
+    if is_late:
         late_come_create(attendance)
-    return True
-
-
-def clock_in_attendance_and_activity(
-    employee,
-    date_today,
-    attendance_date,
-    day,
-    now,
-    shift,
-    minimum_hour,
-    start_time,
-    end_time,
-    in_datetime,
-):
-    """
-    This method is used to create attendance activity or attendance when an employee clocks-in
-    args:
-        employee        : employee instance
-        date_today      : date
-        attendance_date : the date that attendance for
-        day             : shift day
-        now             : current time
-        shift           : shift object
-        minimum_hour    : minimum hour in shift schedule
-        start_time      : start time in shift schedule
-        end_time        : end time in shift schedule
-    """
-
-    # attendance activity create
-    activity = AttendanceActivity.objects.filter(
-        employee_id=employee,
-        attendance_date=attendance_date,
-        clock_in_date=date_today,
-        shift_day=day,
-        clock_out=None,
-    ).first()
-
-    if activity and not activity.clock_out:
-        activity.clock_out = in_datetime
-        activity.clock_out_date = date_today
-        activity.save()
-
-    new_activity = AttendanceActivity.objects.create(
-        employee_id=employee,
-        attendance_date=attendance_date,
-        clock_in_date=date_today,
-        shift_day=day,
-        clock_in=in_datetime,
-        in_datetime=in_datetime,
-    )
-    # create attendance if not exist
-    attendance = Attendance.objects.filter(
-        employee_id=employee, attendance_date=attendance_date
-    )
-    if not attendance.exists():
-        attendance = Attendance()
-        attendance.employee_id = employee
-        attendance.shift_id = shift
-        attendance.work_type_id = attendance.employee_id.employee_work_info.work_type_id
-        attendance.attendance_date = attendance_date
-        attendance.attendance_day = day
-        attendance.attendance_clock_in = now
-        attendance.attendance_clock_in_date = date_today
-        attendance.minimum_hour = minimum_hour
-        attendance.save()
-        # check here late come or not
-
-        attendance = Attendance.find(attendance.id)
-        late_come(
-            attendance=attendance, start_time=start_time, end_time=end_time, shift=shift
-        )
     else:
-        attendance = attendance[0]
+        _clear_exception(attendance, "late_come")
+
+
+def _clear_exception(attendance, kind):
+    # An applied penalty remains an auditable decision for HR to review.
+    attendance.late_come_early_out.filter(
+        type=kind, penaltyaccounts__isnull=True
+    ).delete()
+
+
+def _clock_in_schedule(instant, shift):
+    day_date = instant.date()
+    if instant.hour < 12 and shift:
+        previous = day_date - timedelta(days=1)
+        previous_day = EmployeeShiftDay.objects.get(day=previous.strftime("%A").lower())
+        minimum, start, end = shift_schedule_today(day=previous_day, shift=shift)
+        if start > end:
+            return previous, previous_day, minimum, start, end
+    day = EmployeeShiftDay.objects.get(day=day_date.strftime("%A").lower())
+    minimum, start, end = shift_schedule_today(day=day, shift=shift)
+    return day_date, day, minimum, start, end
+
+
+@transaction.atomic
+def clock_in_attendance_and_activity(
+    employee, work_info, instant, *, reject_duplicate=False
+):
+    """Create one open punch, retaining the first check-in and elapsed work."""
+    instant = local_punch_time(instant)
+    lock_punches(employee)
+    active = list(open_sessions(employee).order_by("pk")[:2])
+    if active:
+        if len(active) != 1:
+            raise PunchConflict(_("Multiple open sessions require attendance review."))
+        attendance = active_attendance(employee, active[0])
+        start = session_start(active[0])
+        if (
+            start is None
+            or instant.astimezone(utc_timezone.utc) < start.astimezone(utc_timezone.utc)
+            or instant.date() > attendance.attendance_date + timedelta(days=1)
+        ):
+            raise PunchConflict(_("The existing open session requires attendance review."))
+        if reject_duplicate:
+            raise PunchConflict(_("Already clocked-in"))
+        return attendance
+
+    shift = work_info.shift_id
+    work_date, day, minimum, start, end = _clock_in_schedule(instant, shift)
+    rows = list(
+        Attendance.objects.filter(employee_id=employee, attendance_date=work_date)[:2]
+    )
+    if len(rows) > 1:
+        raise PunchConflict(_("Multiple daily attendance records require review."))
+    if rows:
+        attendance = rows[0]
+        sessions = list(attendance_sessions(attendance))
+        if not sessions or (
+            attendance.is_validate_request_approved
+            and format_time(worked_session_seconds(sessions)) != attendance.attendance_worked_hour
+        ):
+            raise PunchConflict(_("The daily attendance needs review before adding another session."))
+        ends = (session_end(item) for item in sessions)
+        check_in_utc = instant.astimezone(utc_timezone.utc)
+        if any(end is None or end.astimezone(utc_timezone.utc) > check_in_utc for end in ends):
+            raise PunchConflict(_("Check-in must follow the previous session."))
         attendance.attendance_clock_out = None
         attendance.attendance_clock_out_date = None
-        attendance.save()
-        # delete if the attendance marked the early out
-        early_out_instance = attendance.late_come_early_out.filter(type="early_out")
-        if early_out_instance.exists():
-            early_out_instance[0].delete()
+    else:
+        attendance = Attendance(
+            employee_id=employee,
+            shift_id=shift,
+            work_type_id=work_info.work_type_id,
+            attendance_date=work_date,
+            attendance_day=day,
+            attendance_clock_in=instant.time(),
+            attendance_clock_in_date=instant.date(),
+            minimum_hour=minimum,
+        )
+    AttendanceActivity.objects.create(
+        employee_id=employee,
+        attendance_date=work_date,
+        clock_in_date=instant.date(),
+        clock_in=instant.time(),
+        shift_day=attendance.attendance_day,
+        in_datetime=instant,
+    )
+    attendance.save()
+    if rows:
+        _clear_exception(attendance, "early_out")
+    else:
+        late_come(attendance, start_time=start, end_time=end, shift=shift)
     return attendance
 
 
@@ -271,54 +276,14 @@ def clock_in(request):
                 return HorillaRedirect(request)
 
         employee, work_info = employee_exists(request)
-        datetime_now = timezone.localtime()
-        if request.__dict__.get("datetime"):
-            datetime_now = request.datetime
         if employee and work_info is not None:
-            shift = work_info.shift_id
-            date_today = date.today()
-            if request.__dict__.get("date"):
-                date_today = request.date
-            attendance_date = date_today
-            day = date_today.strftime("%A").lower()
-            day = EmployeeShiftDay.objects.get(day=day)
-            now = datetime.now().strftime("%H:%M")
-            if request.__dict__.get("time"):
-                now = request.time.strftime("%H:%M")
-            now_sec = strtime_seconds(now)
-            mid_day_sec = strtime_seconds("12:00")
-            minimum_hour, start_time_sec, end_time_sec = shift_schedule_today(
-                day=day, shift=shift
-            )
-            if start_time_sec > end_time_sec:
-                # night shift
-                # ------------------
-                # Night shift in Horilla consider a 24 hours from noon to next day noon,
-                # the shift day taken today if the attendance clocked in after 12 O clock.
-
-                if mid_day_sec > now_sec:
-                    # Here you need to create attendance for yesterday
-
-                    date_yesterday = date_today - timedelta(days=1)
-                    day_yesterday = date_yesterday.strftime("%A").lower()
-                    day_yesterday = EmployeeShiftDay.objects.get(day=day_yesterday)
-                    minimum_hour, start_time_sec, end_time_sec = shift_schedule_today(
-                        day=day_yesterday, shift=shift
-                    )
-                    attendance_date = date_yesterday
-                    day = day_yesterday
-            attendance = clock_in_attendance_and_activity(
-                employee=employee,
-                date_today=date_today,
-                attendance_date=attendance_date,
-                day=day,
-                now=now,
-                shift=shift,
-                minimum_hour=minimum_hour,
-                start_time=start_time_sec,
-                end_time=end_time_sec,
-                in_datetime=datetime_now,
-            )
+            try:
+                clock_in_attendance_and_activity(employee, work_info, request_punch_time(request))
+            except PunchConflict as error:
+                if request.__dict__.get("datetime"):
+                    logger.warning("Check-in held for employee %s: %s", employee.pk, error.message)
+                else:
+                    messages.error(request, error.message)
             # Refresh employee from DB so template re-evaluates is_clocked_in correctly
             employee.refresh_from_db()
             return render(
@@ -341,61 +306,54 @@ def clock_in(request):
         return HorillaRedirect(request)
 
 
-def clock_out_attendance_and_activity(employee, date_today, now, out_datetime=None):
-    """
-    Clock out the attendance and activity
-    args:
-        employee    : employee instance
-        date_today  : today date
-        now         : now
-    """
+@transaction.atomic
+def clock_out_attendance_and_activity(employee, instant):
+    """Close only the provable open session and update its own daily record."""
+    instant = local_punch_time(instant)
+    lock_punches(employee)
+    active = list(open_sessions(employee).order_by("pk")[:2])
+    if not active:
+        return None  # A previously completed check-out can be safely retried.
+    if len(active) != 1:
+        raise PunchConflict(_("Multiple open sessions require attendance review."))
+    activity = active[0]
+    attendance = active_attendance(employee, activity)
+    started = session_start(activity)
+    if started is None:
+        raise PunchConflict(_("The open session has no check-in timestamp."))
+    started_utc = started.astimezone(utc_timezone.utc)
+    if instant.astimezone(utc_timezone.utc) < started_utc:
+        raise PunchConflict(_("Check-out cannot be earlier than check-in."))
+    if instant.date() > attendance.attendance_date + timedelta(days=1):
+        raise PunchConflict(_("The existing open session requires attendance review."))
 
-    attendance_activities = AttendanceActivity.objects.filter(
-        employee_id=employee,
-    ).order_by("attendance_date", "id")
-    attendance_activity = None  # Initialize attendance_activity
-
-    if attendance_activities.filter(clock_out__isnull=True).exists():
-        attendance_activity = attendance_activities.filter(
-            clock_out__isnull=True
-        ).last()
-        attendance_activity.clock_out = out_datetime
-        attendance_activity.clock_out_date = date_today
-        attendance_activity.out_datetime = out_datetime
-        attendance_activity.save()
-
-        attendance_activities = attendance_activities.filter(
-            attendance_date=attendance_activity.attendance_date
+    sessions = list(attendance_sessions(attendance).exclude(pk=activity.pk))
+    ends = (session_end(item) for item in sessions)
+    if any(end is None or end.astimezone(utc_timezone.utc) > started_utc for end in ends):
+        raise PunchConflict(
+            _("The open session overlaps a previous session and requires attendance review.")
         )
-        # Here calculate the total durations between the attendance activities
 
-        duration = 0
-        for activity in attendance_activities:
-            in_datetime, out_datetime = activity_datetime(activity)
-            difference = out_datetime - in_datetime
-            days_second = difference.days * 24 * 3600
-            seconds = difference.seconds
-            total_seconds = days_second + seconds
-            duration = duration + total_seconds
-        duration = format_time(duration)
-        # update clock out of attendance
-        attendance = Attendance.objects.filter(employee_id=employee).order_by(
-            "-attendance_date", "-id"
-        )[0]
-        attendance.attendance_clock_out = now + ":00"
-        attendance.attendance_clock_out_date = date_today
-        attendance.attendance_worked_hour = duration
-        # Overtime calculation
-        attendance.attendance_overtime = overtime_calculation(attendance)
+    activity.clock_out = instant.time()
+    activity.clock_out_date = instant.date()
+    activity.out_datetime = instant
+    activity.save()
+    attendance.attendance_clock_out = instant.time()
+    attendance.attendance_clock_out_date = instant.date()
+    attendance.attendance_worked_hour = format_time(worked_session_seconds([*sessions, activity]))
+    attendance.attendance_validated = attendance_validate(attendance)
+    attendance.save()
 
-        # Validate the attendance as per the condition
-        attendance.attendance_validated = attendance_validate(attendance)
-        attendance.save()
-
-        return attendance
-
-    logger.error("No attendance clock in activity found that needs clocking out.")
-    return
+    if attendance.shift_id:
+        next_day = attendance.attendance_date + timedelta(days=1)
+        if instant.date() == attendance.attendance_date or (
+            attendance.is_night_shift() and instant.date() == next_day and instant.hour < 12
+        ):
+            _, start, end = shift_schedule_today(
+                day=attendance.attendance_day, shift=attendance.shift_id
+            )
+            early_out(attendance, start, end, attendance.shift_id)
+    return attendance
 
 
 def early_out_create(attendance):
@@ -455,18 +413,15 @@ def early_out(attendance, start_time, end_time, shift):
             now_sec += grace_time.allowed_time_in_secs
     else:
         pass
-    if start_time > end_time:
-        # Early out condition for night shift
-        if now_sec < mid_day_sec:
-            if now_sec < end_time:
-                # Early out condition for general shift
-                early_out_create(attendance)
-        else:
-            early_out_create(attendance)
-        return
-    if end_time > now_sec:
+    is_early = (
+        now_sec >= mid_day_sec or now_sec < end_time
+        if start_time > end_time
+        else now_sec < end_time
+    )
+    if is_early:
         early_out_create(attendance)
-    return
+    else:
+        _clear_exception(attendance, "early_out")
 
 
 @login_required
@@ -534,63 +489,17 @@ def clock_out(request):
                 messages.error(request, geofence_error)
                 return HorillaRedirect(request)
 
-        datetime_now = timezone.localtime()
-        if request.__dict__.get("datetime"):
-            datetime_now = request.datetime
         employee, work_info = employee_exists(request)
-        shift = work_info.shift_id
-        date_today = date.today()
-        if request.__dict__.get("date"):
-            date_today = request.date
-        day = date_today.strftime("%A").lower()
-        day = EmployeeShiftDay.objects.get(day=day)
-        attendance = (
-            Attendance.objects.filter(employee_id=employee)
-            .order_by("id", "attendance_date")
-            .last()
-        )
-        if attendance is not None:
-            if not attendance.attendance_day:
-                day_name = attendance.attendance_date.strftime("%A").lower()
-                attendance.attendance_day = EmployeeShiftDay.objects.get(day=day_name)
-                attendance.save(update_fields=["attendance_day"])
-            day = attendance.attendance_day
-        now = datetime.now().strftime("%H:%M")
-        if request.__dict__.get("time"):
-            now = request.time.strftime("%H:%M")
-        minimum_hour, start_time_sec, end_time_sec = shift_schedule_today(
-            day=day, shift=shift
-        )
-        attendance = clock_out_attendance_and_activity(
-            employee=employee, date_today=date_today, now=now, out_datetime=datetime_now
-        )
-        if attendance:
-            early_out_instance = attendance.late_come_early_out.filter(type="early_out")
-            is_night_shift = attendance.is_night_shift()
-            next_date = attendance.attendance_date + timedelta(days=1)
-            if not early_out_instance.exists():
-                if is_night_shift:
-                    now_sec = strtime_seconds(now)
-                    mid_sec = strtime_seconds("12:00")
-
-                    if (attendance.attendance_date == date_today) or (
-                        # check is next day mid
-                        mid_sec >= now_sec
-                        and date_today == next_date
-                    ):
-                        early_out(
-                            attendance=attendance,
-                            start_time=start_time_sec,
-                            end_time=end_time_sec,
-                            shift=shift,
-                        )
-                elif attendance.attendance_date == date_today:
-                    early_out(
-                        attendance=attendance,
-                        start_time=start_time_sec,
-                        end_time=end_time_sec,
-                        shift=shift,
-                    )
+        if not employee or work_info is None:
+            messages.error(request, _("Check-Out Unavailable: Your employee profile or work information is incomplete."))
+            return HorillaRedirect(request)
+        try:
+            clock_out_attendance_and_activity(employee, request_punch_time(request))
+        except PunchConflict as error:
+            if request.__dict__.get("datetime"):
+                logger.warning("Check-out held for employee %s: %s", employee.pk, error.message)
+            else:
+                messages.error(request, error.message)
 
         # Refresh employee from DB so template re-evaluates is_clocked_in correctly
         employee.refresh_from_db()

@@ -8,6 +8,7 @@ from django.db.models.signals import post_delete, post_migrate, post_save, pre_d
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
+from attendance.methods.punches import attendance_sessions
 from attendance.methods.utils import strtime_seconds
 from attendance.models import Attendance, AttendanceGeneralSetting, WorkRecords
 from base.models import Company, PenaltyAccounts
@@ -95,8 +96,13 @@ def update_work_record_from_attendance(instance):
             _("Half day leave") if status == "HDP" else _("An approved leave exists")
         )
 
-    if not instance.attendance_clock_out:
-        status, message = "FDP", _("Currently working")
+    if instance.attendance_clock_out is None:
+        if not instance.is_validate_request_approved or attendance_sessions(instance).filter(
+            clock_out__isnull=True,
+            clock_out_date__isnull=True,
+            out_datetime__isnull=True,
+        ).exists():
+            status, message = "FDP", _("Currently working")
 
     work_record.work_record_type = status
     work_record.message = message

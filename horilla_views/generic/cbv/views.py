@@ -265,6 +265,8 @@ class HorillaListView(ListView):
             return HttpResponse(self.select_all(), content_type="application/json")
         return super().dispatch(request, *args, **kwargs)
 
+    explicit_filter_fields = ()
+
     def get_queryset(self, queryset=None, filtered=False, *args, **kwargs):
         if self.queryset is None:
             self.queryset = super().get_queryset() if queryset is None else queryset
@@ -290,7 +292,11 @@ class HorillaListView(ListView):
                     self.request.session["prev_path"] = self.request.path
 
                 cached_filter = CACHE.get(saved_filter_cache_key(self.request))
-                if "filter_applied" in query_dict.keys() or "search" in query_dict:
+                if (
+                    "filter_applied" in query_dict
+                    or "search" in query_dict
+                    or any(query_dict.get(field) for field in self.explicit_filter_fields)
+                ):
                     update_saved_filter_cache(self.request, CACHE)
                 elif cached_filter:
                     query_dict = cached_filter["query_dict"]

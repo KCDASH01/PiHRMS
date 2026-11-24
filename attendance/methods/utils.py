@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import models
 from django.db.models import Q, Sum
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from base.methods import get_pagination
@@ -346,7 +347,7 @@ def attendance_date_validate(date):
     :param date: The date to validate.
     :raises ValidationError: If the provided date is in the future.
     """
-    today = datetime.today().date()
+    today = timezone.localdate()
     if not date:
         raise ValidationError(_("Check date format."))
     elif date > today:
