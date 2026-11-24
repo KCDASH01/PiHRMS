@@ -1,5 +1,7 @@
 {% extends 'index.html' %}
-{% block content %}{% load static %}
+{% block content %}
+<div class="pi-time">
+{% load static %}
     {% load i18n %}
     {% load basefilters %}
     <style>
@@ -95,4 +97,5 @@
             <p class="oh-empty__subtitle">{% trans "There are no attendance requests to display." %}</p>
         </div>
     </div>
+</div>
 {% endblock content %}

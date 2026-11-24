@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --em-indigo: var(--primary-600, #E54F38);
+            --em-indigo: var(--pi-primary, #4f46e5);
             --em-green: #22c55e;
             --em-amber: #f59e0b;
             --em-red: #ef4444;
@@ -240,7 +240,7 @@
             content: '';
         }
         .em-chart-card[data-accent='indigo']::before {
-            background: linear-gradient(90deg, #E54F38, #a855f7);
+            background: linear-gradient(90deg, #4f46e5, #a855f7);
         }
         .em-chart-card[data-accent='green']::before {
             background: linear-gradient(90deg, #22c55e, #06b6d4);
@@ -249,7 +249,7 @@
             background: linear-gradient(90deg, #f59e0b, #ef4444);
         }
         .em-chart-card[data-accent='blue']::before {
-            background: linear-gradient(90deg, #3b82f6, #E54F38);
+            background: linear-gradient(90deg, #3b82f6, #4f46e5);
         }
         .em-chart-card--wide {
             grid-column: span 2;
@@ -303,7 +303,7 @@
         }
         .em-seg__btn:hover { opacity: 1; }
         .em-seg__btn.is-active {
-            background: var(--primary-600, #e54f38);
+            background: var(--primary-600, #4f46e5);
             color: #fff;
             opacity: 1;
         }
@@ -371,7 +371,7 @@
             height: 24px;
             padding: 0 6px;
             border-radius: 999px;
-            background: var(--primary-600, #e54f38);
+            background: var(--primary-600, #4f46e5);
             color: #fff;
             font-size: 12px;
             font-weight: 600;
@@ -518,7 +518,7 @@
         /* Panel links */
         .em-panel__link {
             flex-shrink: 0;
-            color: var(--primary-600, #E54F38);
+            color: var(--primary-600, #4f46e5);
             font-weight: 700;
             font-size: 11px;
             text-decoration: none;
@@ -530,14 +530,14 @@
             flex-shrink: 0;
             padding: 6px 10px;
             border-radius: 8px;
-            background: color-mix(in srgb, var(--primary-600, #E54F38) 12%, transparent);
-            color: var(--primary-600, #E54F38);
+            background: color-mix(in srgb, var(--primary-600, #4f46e5) 12%, transparent);
+            color: var(--primary-600, #4f46e5);
             font-weight: 700;
             font-size: 11px;
             white-space: nowrap;
         }
         .dark .em-emp-item__date {
-            background: color-mix(in srgb, var(--primary-600, #E54F38) 25%, transparent);
+            background: color-mix(in srgb, var(--primary-600, #4f46e5) 25%, transparent);
             color: var(--primary-300, #fcedeb);
         }
 
@@ -761,14 +761,15 @@
 
     {% include "components/pie_legend.html" %}
 
-    <div class="em-dashboard">
+    {% include "pihrms/dashboard_styles.html" %}
+    <div class="em-dashboard pi-dashboard">
         <!-- Header -->
-        <div class="em-header">
+        <div class="em-header pi-dashboard-header">
             <div>
                 <h1>{% trans "Employee Dashboard" %}</h1>
-                <div class="em-header__date" id="em-today-date"></div>
+                <div class="em-header__date pi-dashboard-date" id="em-today-date"></div>
             </div>
-            <div class="em-header__actions">
+            <div class="em-header__actions pi-dashboard-actions">
                 <button
                     type="button"
                     class="oh-btn oh-btn--secondary"
@@ -795,10 +796,10 @@
         </div>
 
         <!-- KPI Cards -->
-        <div class="em-kpi-grid" id="em-kpi-grid">
+        <div class="em-kpi-grid pi-dashboard-kpis" id="em-kpi-grid">
             <a
                 href="{% url 'requests-view' %}?tab=document&status=requested&employee_id__is_active=true&filter_applied=on"
-                class="em-kpi-card"
+                class="em-kpi-card pi-dashboard-card"
                 id="kpi-card-documents"
                 data-cust-id="kpi-documents"
                 data-cust-group="kpi"
@@ -813,12 +814,12 @@
                     </svg>
                 </div>
                 <div class="em-kpi-card__label">{% trans "Document Requests" %}</div>
-                <div class="em-kpi-card__value" id="kpi-documents"><div class="em-skeleton em-skeleton--value"></div></div>
+                <div class="em-kpi-card__value pi-dashboard-card-value" id="kpi-documents"><div class="em-skeleton pi-dashboard-skeleton em-skeleton--value"></div></div>
                 <div class="em-kpi-card__sub"><span class="em-badge em-badge--amber">{% trans "Not yet received" %}</span></div>
             </a>
             <a
                 href="{% url 'requests-view' %}?tab=work-type&status=requested&filter_applied=on"
-                class="em-kpi-card"
+                class="em-kpi-card pi-dashboard-card"
                 id="kpi-card-work-type"
                 data-cust-id="kpi-work-type"
                 data-cust-group="kpi"
@@ -831,12 +832,12 @@
                     </svg>
                 </div>
                 <div class="em-kpi-card__label">{% trans "Work Type Requests" %}</div>
-                <div class="em-kpi-card__value" id="kpi-work-type"><div class="em-skeleton em-skeleton--value"></div></div>
+                <div class="em-kpi-card__value pi-dashboard-card-value" id="kpi-work-type"><div class="em-skeleton pi-dashboard-skeleton em-skeleton--value"></div></div>
                 <div class="em-kpi-card__sub"><span class="em-badge em-badge--blue">{% trans "Pending approval" %}</span></div>
             </a>
             <a
                 href="{% url 'requests-view' %}?tab=shift-request&status=requested&filter_applied=on"
-                class="em-kpi-card"
+                class="em-kpi-card pi-dashboard-card"
                 id="kpi-card-shift"
                 data-cust-id="kpi-shift"
                 data-cust-group="kpi"
@@ -849,12 +850,12 @@
                     </svg>
                 </div>
                 <div class="em-kpi-card__label">{% trans "Shift Requests" %}</div>
-                <div class="em-kpi-card__value" id="kpi-shift"><div class="em-skeleton em-skeleton--value"></div></div>
+                <div class="em-kpi-card__value pi-dashboard-card-value" id="kpi-shift"><div class="em-skeleton pi-dashboard-skeleton em-skeleton--value"></div></div>
                 <div class="em-kpi-card__sub"><span class="em-badge em-badge--amber">{% trans "Pending approval" %}</span></div>
             </a>
             <a
                 href="{% url 'requests-view' %}?tab=shift-inbox&status=requested&filter_applied=on"
-                class="em-kpi-card"
+                class="em-kpi-card pi-dashboard-card"
                 id="kpi-card-shift-allocation"
                 data-cust-id="kpi-shift-allocation"
                 data-cust-group="kpi"
@@ -868,86 +869,86 @@
                     </svg>
                 </div>
                 <div class="em-kpi-card__label">{% trans "Shift Allocation Requests" %}</div>
-                <div class="em-kpi-card__value" id="kpi-shift-allocation"><div class="em-skeleton em-skeleton--value"></div></div>
+                <div class="em-kpi-card__value pi-dashboard-card-value" id="kpi-shift-allocation"><div class="em-skeleton pi-dashboard-skeleton em-skeleton--value"></div></div>
                 <div class="em-kpi-card__sub"><span class="em-badge em-badge--green">{% trans "Pending approval" %}</span></div>
             </a>
         </div>
 
         <!-- Main content + Sidebar -->
-        <div class="em-layout">
+        <div class="em-layout pi-dashboard-layout">
             <div class="em-main">
-                <div class="em-chart-grid" id="em-chart-grid">
+                <div class="em-chart-grid pi-dashboard-chart-grid" id="em-chart-grid">
                     <div
-                        class="em-chart-card"
+                        class="em-chart-card pi-dashboard-card"
                         data-accent="indigo"
                         data-cust-id="chart-work-type"
                         data-cust-group="chart"
                         data-cust-label="{% trans 'Work Type Distribution' %}"
-                    >
+                     role="group" aria-labelledby="pi-em-chart-title-1">
                         <div class="em-chart-card__header">
                             <div>
-                                <div class="em-chart-card__title">{% trans "Work Type Distribution" %}</div>
-                                <div class="em-chart-card__subtitle">{% trans "Active employees by work type" %}</div>
+                                <div class="em-chart-card__title pi-dashboard-card-title" id="pi-em-chart-title-1">{% trans "Work Type Distribution" %}</div>
+                                <div class="em-chart-card__subtitle pi-dashboard-card-note">{% trans "Active employees by work type" %}</div>
                             </div>
                         </div>
                         <div class="em-chart-card__body"><div id="chart-em-work-type"></div></div>
                     </div>
                     <div
-                        class="em-chart-card"
+                        class="em-chart-card pi-dashboard-card"
                         data-accent="green"
                         data-cust-id="chart-shift"
                         data-cust-group="chart"
                         data-cust-label="{% trans 'Shift Distribution' %}"
-                    >
+                     role="group" aria-labelledby="pi-em-chart-title-2">
                         <div class="em-chart-card__header">
                             <div>
-                                <div class="em-chart-card__title">{% trans "Shift Distribution" %}</div>
-                                <div class="em-chart-card__subtitle">{% trans "Active employees by assigned shift" %}</div>
+                                <div class="em-chart-card__title pi-dashboard-card-title" id="pi-em-chart-title-2">{% trans "Shift Distribution" %}</div>
+                                <div class="em-chart-card__subtitle pi-dashboard-card-note">{% trans "Active employees by assigned shift" %}</div>
                             </div>
                         </div>
                         <div class="em-chart-card__body"><div id="chart-em-shift"></div></div>
                     </div>
                     <div
-                        class="em-chart-card"
+                        class="em-chart-card pi-dashboard-card"
                         data-accent="blue"
                         data-cust-id="chart-dept"
                         data-cust-group="chart"
                         data-cust-label="{% trans 'Department Distribution' %}"
-                    >
+                     role="group" aria-labelledby="pi-em-chart-title-3">
                         <div class="em-chart-card__header">
                             <div>
-                                <div class="em-chart-card__title">{% trans "Department Distribution" %}</div>
-                                <div class="em-chart-card__subtitle">{% trans "Active employees by department" %}</div>
+                                <div class="em-chart-card__title pi-dashboard-card-title" id="pi-em-chart-title-3">{% trans "Department Distribution" %}</div>
+                                <div class="em-chart-card__subtitle pi-dashboard-card-note">{% trans "Active employees by department" %}</div>
                             </div>
                         </div>
                         <div class="em-chart-card__body"><div id="chart-em-dept"></div></div>
                     </div>
                     <div
-                        class="em-chart-card"
+                        class="em-chart-card pi-dashboard-card"
                         data-accent="blue"
                         data-cust-id="chart-managers"
                         data-cust-group="chart"
                         data-cust-label="{% trans 'Employees Per Reporting Manager' %}"
-                    >
+                     role="group" aria-labelledby="pi-em-chart-title-4">
                         <div class="em-chart-card__header">
                             <div>
-                                <div class="em-chart-card__title">{% trans "Employees Per Reporting Manager" %}</div>
-                                <div class="em-chart-card__subtitle">{% trans "Active direct reports, top 10 managers" %}</div>
+                                <div class="em-chart-card__title pi-dashboard-card-title" id="pi-em-chart-title-4">{% trans "Employees Per Reporting Manager" %}</div>
+                                <div class="em-chart-card__subtitle pi-dashboard-card-note">{% trans "Active direct reports, top 10 managers" %}</div>
                             </div>
                         </div>
                         <div class="em-chart-card__body"><div id="chart-em-managers"></div></div>
                     </div>
                     <div
-                        class="em-chart-card em-chart-card--wide"
+                        class="em-chart-card pi-dashboard-card em-chart-card--wide"
                         data-accent="green"
                         data-cust-id="chart-turnover"
                         data-cust-group="chart"
                         data-cust-label="{% trans 'Hire vs Turnover' %}"
-                    >
+                     role="group" aria-labelledby="pi-em-chart-title-5">
                         <div class="em-chart-card__header">
                             <div>
-                                <div class="em-chart-card__title">{% trans "Hire vs Turnover" %}</div>
-                                <div class="em-chart-card__subtitle" id="em-turnover-rate">{% trans "New hires vs exits — last 6 months" %}</div>
+                                <div class="em-chart-card__title pi-dashboard-card-title" id="pi-em-chart-title-5">{% trans "Hire vs Turnover" %}</div>
+                                <div class="em-chart-card__subtitle pi-dashboard-card-note" id="em-turnover-rate">{% trans "New hires vs exits — last 6 months" %}</div>
                             </div>
                             <div class="em-chart-card__controls">
                                 <div class="em-seg" id="em-turnover-measure" hidden>
@@ -963,16 +964,16 @@
                         <div class="em-chart-card__body"><div id="chart-em-turnover"></div></div>
                     </div>
                     <div
-                        class="em-chart-card em-chart-card--wide"
+                        class="em-chart-card pi-dashboard-card em-chart-card--wide"
                         data-accent="indigo"
                         data-cust-id="chart-dept-positions"
                         data-cust-group="chart"
                         data-cust-label="{% trans 'Job Position Headcount by Department' %}"
-                    >
+                     role="group" aria-labelledby="pi-em-chart-title-6">
                         <div class="em-chart-card__header">
                             <div>
-                                <div class="em-chart-card__title">{% trans "Job Position Headcount by Department" %}</div>
-                                <div class="em-chart-card__subtitle">{% trans "Active employees per job position, stacked by department" %}</div>
+                                <div class="em-chart-card__title pi-dashboard-card-title" id="pi-em-chart-title-6">{% trans "Job Position Headcount by Department" %}</div>
+                                <div class="em-chart-card__subtitle pi-dashboard-card-note">{% trans "Active employees per job position, stacked by department" %}</div>
                             </div>
                         </div>
                         <div class="em-chart-card__body"><div id="chart-em-dept-positions"></div></div>
@@ -981,7 +982,7 @@
             </div>
 
             <!-- Sidebar -->
-            <div class="em-sidebar" id="em-sidebar">
+            <div class="em-sidebar pi-dashboard-side" id="em-sidebar">
                 <div
                     class="em-panel"
                     data-cust-id="panel-new-employees"
@@ -1040,11 +1041,11 @@
             const textColor = isDark ? '#e2e8f0' : '#334155';
             const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
             const cardBg    = isDark ? '#242424' : '#ffffff';
-            const COLORS = ['#E54F38','#22c55e','#f59e0b','#3b82f6','#a855f7','#06b6d4','#ec4899','#ef4444','#84cc16','#0ea5e9'];
+            const COLORS = ['#4f46e5','#22c55e','#f59e0b','#3b82f6','#a855f7','#06b6d4','#ec4899','#ef4444','#84cc16','#0ea5e9'];
             const employeeListUrl = "{% url 'employee-view' %}";
 
             const esc = (v) => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-            const emptyHtml = (msg) => `<div class="em-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+            const emptyHtml = (msg) => `<div class="em-empty pi-dashboard-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
             const fetchJson = (url) => fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
             // Active-employee list filtered by one work-information field
             const employeeUrlFor = (field, id) => `${employeeListUrl}?${field}=${encodeURIComponent(id)}&is_active=True&filter_applied=on`;

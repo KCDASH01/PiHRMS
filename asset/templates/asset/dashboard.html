@@ -6,7 +6,7 @@
     {% include "components/legend_prefs.html" %}
     <style>
         :root {
-            --as-indigo: var(--primary-600, #E54F38);
+            --as-indigo: var(--pi-primary, #4f46e5);
             --as-green: #22c55e;
             --as-amber: #f59e0b;
             --as-red: #ef4444;
@@ -864,11 +864,12 @@
         }
     </style>
 
-    <div class="as-dashboard">
-        <div class="as-header">
+    {% include "pihrms/dashboard_styles.html" %}
+    <div class="as-dashboard pi-dashboard">
+        <div class="as-header pi-dashboard-header">
             <div>
                 <h1>{% trans "Asset Dashboard" %}</h1>
-                <div class="as-header__date" id="as-date"></div>
+                <div class="as-header__date pi-dashboard-date" id="as-date"></div>
                 <div class="as-refresh">
                     <span class="as-refresh__dot" id="as-refresh-dot"></span><span
                         id="as-refresh-text"
@@ -882,7 +883,7 @@
                 </div>
             </div>
             <div style="display: flex; gap: 8px">
-                <div class="as-period-picker">
+                <div class="as-period-picker pi-dashboard-period">
                     <button class="as-period-preset" data-preset="today">{% trans "Today" %}</button>
                     <button class="as-period-preset" data-preset="this_week">{% trans "This Week" %}</button>
                     <button class="as-period-preset" data-preset="last_week">{% trans "Last Week" %}</button>
@@ -899,51 +900,51 @@
             </div>
         </div>
 
-        <div class="as-kpi-grid" id="as-kpi-grid">
-            <div class="as-skeleton as-skeleton--kpi"></div>
-            <div class="as-skeleton as-skeleton--kpi"></div>
-            <div class="as-skeleton as-skeleton--kpi"></div>
-            <div class="as-skeleton as-skeleton--kpi"></div>
+        <div class="as-kpi-grid pi-dashboard-kpis" id="as-kpi-grid">
+            <div class="as-skeleton pi-dashboard-skeleton as-skeleton--kpi"></div>
+            <div class="as-skeleton pi-dashboard-skeleton as-skeleton--kpi"></div>
+            <div class="as-skeleton pi-dashboard-skeleton as-skeleton--kpi"></div>
+            <div class="as-skeleton pi-dashboard-skeleton as-skeleton--kpi"></div>
         </div>
 
-        <div class="as-layout">
+        <div class="as-layout pi-dashboard-layout">
             <div class="as-main">
-                <div class="as-chart-grid">
+                <div class="as-chart-grid pi-dashboard-chart-grid">
                     <div
-                        class="as-chart-card"
+                        class="as-chart-card pi-dashboard-card"
                         data-chart-id="asset_status"
                         data-chart-label="{% trans 'Asset Status' %}"
-                    >
+                     role="group" aria-labelledby="pi-as-chart-title-1">
                         <div class="as-chart-card__header">
                             <div>
-                                <div class="as-chart-card__title">{% trans "Asset Status" %}</div>
-                                <div class="as-chart-card__subtitle">{% trans "In use, available, unavailable" %}</div>
+                                <div class="as-chart-card__title pi-dashboard-card-title" id="pi-as-chart-title-1">{% trans "Asset Status" %}</div>
+                                <div class="as-chart-card__subtitle pi-dashboard-card-note">{% trans "In use, available, unavailable" %}</div>
                             </div>
                         </div>
                         <div class="as-chart-card__body"><div id="chart-asset-status"></div></div>
                     </div>
                     <div
-                        class="as-chart-card"
+                        class="as-chart-card pi-dashboard-card"
                         data-chart-id="request_status"
                         data-chart-label="{% trans 'Request Status' %}"
-                    >
+                     role="group" aria-labelledby="pi-as-chart-title-2">
                         <div class="as-chart-card__header">
                             <div>
-                                <div class="as-chart-card__title">{% trans "Request Status" %}</div>
-                                <div class="as-chart-card__subtitle">{% trans "Asset requests" %}</div>
+                                <div class="as-chart-card__title pi-dashboard-card-title" id="pi-as-chart-title-2">{% trans "Request Status" %}</div>
+                                <div class="as-chart-card__subtitle pi-dashboard-card-note">{% trans "Asset requests" %}</div>
                             </div>
                         </div>
                         <div class="as-chart-card__body"><div id="chart-request-status"></div></div>
                     </div>
                     <div
-                        class="as-chart-card"
+                        class="as-chart-card pi-dashboard-card"
                         data-chart-id="by_category"
                         data-chart-label="{% trans 'Assets by Category' %}"
-                    >
+                     role="group" aria-labelledby="pi-as-chart-title-3">
                         <div class="as-chart-card__header">
                             <div>
-                                <div class="as-chart-card__title">{% trans "Assets by Category" %}</div>
-                                <div class="as-chart-card__subtitle">
+                                <div class="as-chart-card__title pi-dashboard-card-title" id="pi-as-chart-title-3">{% trans "Assets by Category" %}</div>
+                                <div class="as-chart-card__subtitle pi-dashboard-card-note">
                                     {% trans "Share of in use, available and not available per category" %}
                                 </div>
                             </div>
@@ -952,14 +953,14 @@
                         <div class="as-pie-legend" id="as-pie-legend-category"></div>
                     </div>
                     <div
-                        class="as-chart-card"
+                        class="as-chart-card pi-dashboard-card"
                         data-chart-id="value_category"
                         data-chart-label="{% trans 'Value by Category' %}"
-                    >
+                     role="group" aria-labelledby="pi-as-chart-title-4">
                         <div class="as-chart-card__header">
                             <div>
-                                <div class="as-chart-card__title">{% trans "Value by Category" %}</div>
-                                <div class="as-chart-card__subtitle">{% trans "Total purchase cost" %}</div>
+                                <div class="as-chart-card__title pi-dashboard-card-title" id="pi-as-chart-title-4">{% trans "Value by Category" %}</div>
+                                <div class="as-chart-card__subtitle pi-dashboard-card-note">{% trans "Total purchase cost" %}</div>
                             </div>
                         </div>
                         <div class="as-chart-card__body">
@@ -968,28 +969,28 @@
                         </div>
                     </div>
                     <div
-                        class="as-chart-card"
+                        class="as-chart-card pi-dashboard-card"
                         data-chart-id="dept_assets"
                         data-chart-label="{% trans 'Assets by Department' %}"
-                    >
+                     role="group" aria-labelledby="pi-as-chart-title-5">
                         <div class="as-chart-card__header">
                             <div>
-                                <div class="as-chart-card__title">{% trans "Assets by Department" %}</div>
-                                <div class="as-chart-card__subtitle">{% trans "Allocated assets ranked by department" %}</div>
+                                <div class="as-chart-card__title pi-dashboard-card-title" id="pi-as-chart-title-5">{% trans "Assets by Department" %}</div>
+                                <div class="as-chart-card__subtitle pi-dashboard-card-note">{% trans "Allocated assets ranked by department" %}</div>
                             </div>
                         </div>
                         <div class="as-chart-card__body"><div id="chart-dept-assets"></div></div>
                         <div class="as-pie-legend" id="as-pie-legend-dept"></div>
                     </div>
                     <div
-                        class="as-chart-card"
+                        class="as-chart-card pi-dashboard-card"
                         data-chart-id="age_distribution"
                         data-chart-label="{% trans 'Asset Age' %}"
-                    >
+                     role="group" aria-labelledby="pi-as-chart-title-6">
                         <div class="as-chart-card__header">
                             <div>
-                                <div class="as-chart-card__title">{% trans "Asset Age" %}</div>
-                                <div class="as-chart-card__subtitle">{% trans "Fleet age distribution" %}</div>
+                                <div class="as-chart-card__title pi-dashboard-card-title" id="pi-as-chart-title-6">{% trans "Asset Age" %}</div>
+                                <div class="as-chart-card__subtitle pi-dashboard-card-note">{% trans "Fleet age distribution" %}</div>
                             </div>
                         </div>
                         <div class="as-chart-card__body"><div id="chart-age-dist"></div></div>
@@ -997,11 +998,11 @@
                 </div>
             </div>
 
-            <div class="as-sidebar">
-                <div class="as-info-panel">
+            <div class="as-sidebar pi-dashboard-side">
+                <div class="as-info-panel pi-dashboard-card">
                     <div class="as-info-panel__header">
                         <div class="as-info-panel__heading">
-                            <div class="as-info-panel__title">{% trans "Expiring Soon" %}<span id="as-expiring-count" class="as-count-badge" hidden title="{% trans 'Assets expiring in the next 30 days' %}">0</span></div>
+                            <div class="as-info-panel__title pi-dashboard-card-title">{% trans "Expiring Soon" %}<span id="as-expiring-count" class="as-count-badge" hidden title="{% trans 'Assets expiring in the next 30 days' %}">0</span></div>
                             <div class="as-info-panel__sub">{% trans "Next 30 Days" %}</div>
                         </div>
                     </div>
@@ -1009,10 +1010,10 @@
                         <div class="as-info-panel__empty">{% trans "Loading..." %}</div>
                     </div>
                 </div>
-                <div class="as-info-panel">
+                <div class="as-info-panel pi-dashboard-card">
                     <div class="as-info-panel__header">
                         <div class="as-info-panel__heading">
-                            <div class="as-info-panel__title">{% trans "Recent Allocations" %}<span id="as-allocations-count" class="as-count-badge" hidden title="{% trans 'Assets allocated in this period' %}">0</span></div>
+                            <div class="as-info-panel__title pi-dashboard-card-title">{% trans "Recent Allocations" %}<span id="as-allocations-count" class="as-count-badge" hidden title="{% trans 'Assets allocated in this period' %}">0</span></div>
                             <div class="as-info-panel__sub" data-period-label></div>
                         </div>
                     </div>
@@ -1044,8 +1045,8 @@
             const textColor = isDark ? '#e2e8f0' : '#334155';
             const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
             const cardBg = isDark ? '#242424' : '#ffffff';
-            const COLORS = ['#E54F38','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
-            const emptyHtml = (msg) => `<div class="as-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+            const COLORS = ['#4f46e5','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
+            const emptyHtml = (msg) => `<div class="as-empty pi-dashboard-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
             const fmt = v => Number(v).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
             const TOOLTIP_STYLE = { theme: isDark ? 'dark' : 'light', style: { fontSize: '12px' } };
             const tipEsc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1284,28 +1285,28 @@
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('as-kpi-grid').innerHTML = `
-                <a href="{% url 'asset-category-view' %}?nested_fields=" class="as-kpi-card">
+                <a href="{% url 'asset-category-view' %}?nested_fields=" class="as-kpi-card pi-dashboard-card">
                     <div class="as-kpi-card__icon as-kpi-card__icon--blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
                     <div class="as-kpi-card__label">{% trans "Total Assets"|escapejs %}</div>
-                    <div class="as-kpi-card__value">${data.total_assets}</div>
+                    <div class="as-kpi-card__value pi-dashboard-card-value">${data.total_assets}</div>
                     <div class="as-kpi-card__sub"><span class="as-badge as-badge--green">${data.in_use} {% trans "In Use"|escapejs %}</span> <span class="as-badge as-badge--amber">${data.available} {% trans "Available"|escapejs %}</span> <span class="as-badge as-badge--red">${data.not_available} {% trans "Not Available"|escapejs %}</span></div>
                 </a>
-                <a href="{% url 'asset-request-allocation-view' %}?open_tab=2&asset_request_status=Requested&custom_field=asset_request_date&custom_lookup=gte&custom_value=${data.period_from_date}&custom_field=asset_request_date&custom_lookup=lte&custom_value=${data.period_to_date}&filter_applied=1" class="as-kpi-card">
+                <a href="{% url 'asset-request-allocation-view' %}?open_tab=2&asset_request_status=Requested&custom_field=asset_request_date&custom_lookup=gte&custom_value=${data.period_from_date}&custom_field=asset_request_date&custom_lookup=lte&custom_value=${data.period_to_date}&filter_applied=1" class="as-kpi-card pi-dashboard-card">
                     <div class="as-kpi-card__icon as-kpi-card__icon--amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
                     <div class="as-kpi-card__label">{% trans "Pending Requests"|escapejs %}</div>
-                    <div class="as-kpi-card__value">${data.pending_requests}</div>
+                    <div class="as-kpi-card__value pi-dashboard-card-value">${data.pending_requests}</div>
                     <div class="as-kpi-card__sub"><span class="as-badge as-badge--amber">{% trans "Awaiting Approval"|escapejs %}</span></div>
                 </a>
-                <a href="{% url 'asset-request-allocation-view' %}?open_tab=4&status=Requested&filter_applied=1" class="as-kpi-card">
+                <a href="{% url 'asset-request-allocation-view' %}?open_tab=4&status=Requested&filter_applied=1" class="as-kpi-card pi-dashboard-card">
                     <div class="as-kpi-card__icon as-kpi-card__icon--green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
                     <div class="as-kpi-card__label">{% trans "Service Requests"|escapejs %}</div>
-                    <div class="as-kpi-card__value">${data.service_requests}</div>
+                    <div class="as-kpi-card__value pi-dashboard-card-value">${data.service_requests}</div>
                     <div class="as-kpi-card__sub"><span class="as-badge as-badge--blue">{% trans "Requested"|escapejs %}</span></div>
                 </a>
-                <a href="{% url 'asset-category-view' %}?expiry_date__gte=${data.expiring_soon_from_date}&expiry_date__lte=${data.expiring_soon_to_date}&filter_applied=1" class="as-kpi-card">
+                <a href="{% url 'asset-category-view' %}?expiry_date__gte=${data.expiring_soon_from_date}&expiry_date__lte=${data.expiring_soon_to_date}&filter_applied=1" class="as-kpi-card pi-dashboard-card">
                     <div class="as-kpi-card__icon as-kpi-card__icon--red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
                     <div class="as-kpi-card__label">{% trans "Warranty Expiring Soon"|escapejs %}</div>
-                    <div class="as-kpi-card__value">${data.expiring_soon}</div>
+                    <div class="as-kpi-card__value pi-dashboard-card-value">${data.expiring_soon}</div>
                     <div class="as-kpi-card__sub"><span class="as-badge as-badge--amber">{% trans "Next 30 Days"|escapejs %}</span></div>
                 </a>`;
                 })

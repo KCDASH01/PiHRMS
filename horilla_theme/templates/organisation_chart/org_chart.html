@@ -13,7 +13,10 @@
 {% endblock %}
 
 {% block content %}
-    <div class="oh-wrapper oh-main__topbar">
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-organization">
+
+    <div class="oh-wrapper oh-main__topbar pi-employee-toolbar">
         <div class="oh-main__titlebar oh-main__titlebar--left">
             <div style="display: flow">
                 <h1 class="text-lg font-semibold mb-3">
@@ -68,4 +71,5 @@
         </div>
     </div>
     <div class="oh-wrapper" id="chart_target"></div>
+</div>
 {% endblock %}

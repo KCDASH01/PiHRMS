@@ -2,6 +2,8 @@
 {% load i18n static %}
 
 {% block settings %}
+<div class="pi-time">
+
     <div id="ohMessages"></div>
 
     {% include "generic/components.html" %}
@@ -99,4 +101,5 @@
     <script>
         $(".reload-record").click();
     </script>
+</div>
 {% endblock settings %}

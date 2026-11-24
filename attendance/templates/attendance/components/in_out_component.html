@@ -7,7 +7,8 @@
                 <!-- "CHEKING WETHER ITS IS THE CURRENT EMPLOYEES COMPANY OR ALL COMPANY, THEN ONLY SHOWS THE CHECK-IN, CHECK-OUT BUTTON" -->
                 {% if request.user|is_clocked_in and get_forecasted_at_work.has_attendance %}
                     <button
-                        class="oh-btn oh-btn--warning mr-2{% if geo_on %} geo-clock-btn{% endif %}"
+                        class="oh-btn oh-btn--warning mr-2 pi-time-clock{% if geo_on %} geo-clock-btn{% endif %}"
+                        type="button" aria-label="{% trans 'Check Out' %}"
                         {% if request|is_timerunner_enabled and get_forecasted_at_work.has_attendance %}
                             onmouseenter="$(this).find('span').show();$(this).find('.time-runner').hide()"
                             onmouseleave="$(this).find('span').hide();$(this).find('.time-runner').show()"
@@ -44,7 +45,8 @@
                             onmouseenter="$(this).find('span').show();$(this).find('.at-work-seconds').hide()"
                             onmouseleave="$(this).find('span').hide();$(this).find('.at-work-seconds').show()"
                         {% endif %}
-                        class="oh-btn oh-btn--success mr-2{% if geo_on %} geo-clock-btn{% endif %}"
+                        class="oh-btn oh-btn--success mr-2 pi-time-clock{% if geo_on %} geo-clock-btn{% endif %}"
+                        type="button" aria-label="{% trans 'Check In' %}"
                         {% if geo_on %}
                             data-clock-url="{% url 'clock-in' %}"
                         {% else %}

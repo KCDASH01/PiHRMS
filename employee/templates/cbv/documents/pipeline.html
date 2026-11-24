@@ -136,7 +136,8 @@
   }
 </style>
 
-<div id="{{view_id}}">
+<div id="{{view_id}}" class="pi-employee pi-employee-documents pi-employee-document-pipeline">
+  {% include "pihrms/employee_styles.html" %}
   {% comment %}
     Marks the page as a tab/pipeline host: every group's list otherwise calls
     reloadMessage() when it loads (unless a .HTV element exists), and each of
@@ -157,7 +158,7 @@
     {% include "generic/quick_actions.html" %}
   </div>
 
-  <div class="bg-white p-4 rounded-md shadow-card relative">
+  <div class="bg-white p-4 rounded-md shadow-card relative pi-employee-document-scroll" tabindex="0" role="region" aria-label="{% trans 'Grouped document requests' %}">
     {% if groups %}
 
     <div id="docToolbarPanel" class="bg-white rounded-t-md border border-b-0 border-[#EAE8E3] overflow-hidden">

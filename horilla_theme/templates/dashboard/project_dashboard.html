@@ -2,6 +2,9 @@
 {% load static i18n horillafilters mathfilters %}
 
 {% block content %}
+{% include "pihrms/dashboard_styles.html" %}
+<div class="pi-dashboard pi-dashboard--legacy">
+
     <style>
         .oh-info {
             top: 2px !important;
@@ -128,4 +131,5 @@
         </div>
     </div>
     <script src="{% static 'dashboard/projectChart.js' %}"></script>
+</div>
 {% endblock %}

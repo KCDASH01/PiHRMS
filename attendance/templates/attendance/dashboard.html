@@ -2,6 +2,8 @@
 {% load static i18n %}
 
 {% block content %}
+<div class="pi-time">
+
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     {% include "components/legend_prefs.html" %}
     <style>
@@ -12,7 +14,7 @@
             cursor: default;
         }
         :root {
-            --am-indigo: var(--primary-600, #e54f38);
+            --am-indigo: var(--pi-primary, #4f46e5);
             --md-indigo: var(--am-indigo);
             --am-green: #22c55e;
             --am-amber: #f59e0b;
@@ -288,7 +290,7 @@
             content: "";
         }
         .am-chart-card[data-chart-section="overview"]::before {
-            background: linear-gradient(90deg, #e54f38, #a855f7);
+            background: linear-gradient(90deg, #4f46e5, #a855f7);
         }
         .am-chart-card[data-chart-section="attendance"]::before {
             background: linear-gradient(90deg, #22c55e, #06b6d4);
@@ -297,7 +299,7 @@
             background: linear-gradient(90deg, #f59e0b, #ef4444);
         }
         .am-chart-card[data-chart-section="hours"]::before {
-            background: linear-gradient(90deg, #3b82f6, #e54f38);
+            background: linear-gradient(90deg, #3b82f6, #4f46e5);
         }
 
         .am-chart-card--wide {
@@ -1103,12 +1105,13 @@
 
     </style>
 
-    <div class="am-dashboard">
+    {% include "pihrms/dashboard_styles.html" %}
+    <div class="am-dashboard pi-dashboard">
         <!-- Header -->
-        <div class="am-header">
+        <div class="am-header pi-dashboard-header">
             <div>
                 <h1>{% trans "Attendance Dashboard" %}</h1>
-                <div class="am-header__date" id="am-date"></div>
+                <div class="am-header__date pi-dashboard-date" id="am-date"></div>
                 <div class="am-refresh">
                     <span class="am-refresh__dot" id="am-refresh-dot"></span>
                     <span id="am-refresh-text">{% trans "Just now" %}</span>
@@ -1122,10 +1125,10 @@
                 </div>
             </div>
             <div
-                class="am-header__actions"
+                class="am-header__actions pi-dashboard-actions"
                 style="display: flex; align-items: center; gap: 8px"
             >
-                <div class="am-period-picker">
+                <div class="am-period-picker pi-dashboard-period">
                     <button class="am-period-preset" data-preset="today">
                         {% trans "Today" %}
                     </button>
@@ -1184,33 +1187,33 @@
         </div>
 
         <!-- KPI Cards -->
-        <div class="am-kpi-grid" id="am-kpi-grid">
-            <div class="am-skeleton am-skeleton--kpi"></div>
-            <div class="am-skeleton am-skeleton--kpi"></div>
-            <div class="am-skeleton am-skeleton--kpi"></div>
-            <div class="am-skeleton am-skeleton--kpi"></div>
+        <div class="am-kpi-grid pi-dashboard-kpis" id="am-kpi-grid">
+            <div class="am-skeleton pi-dashboard-skeleton am-skeleton--kpi"></div>
+            <div class="am-skeleton pi-dashboard-skeleton am-skeleton--kpi"></div>
+            <div class="am-skeleton pi-dashboard-skeleton am-skeleton--kpi"></div>
+            <div class="am-skeleton pi-dashboard-skeleton am-skeleton--kpi"></div>
         </div>
 
         <!-- Main layout with sidebar -->
-        <div class="am-layout">
+        <div class="am-layout pi-dashboard-layout">
             <!-- Left: Charts -->
             <div class="am-main">
-                <div class="am-chart-grid" id="am-charts-container">
+                <div class="am-chart-grid pi-dashboard-chart-grid" id="am-charts-container">
                     <!-- Daily attendance rate (colored bar; id kept for prefs) -->
                     <div
-                        class="am-chart-card am-chart-card--wide"
+                        class="am-chart-card pi-dashboard-card am-chart-card--wide"
                         data-chart-id="calendar_heatmap"
                         data-chart-section="attendance"
                         data-chart-label="{% trans 'Daily Attendance Rate' %}"
                         data-chart-wide="1"
-                    >
+                     role="group" aria-labelledby="pi-am-chart-title-1">
                         <div class="am-chart-card__header">
                             <div>
-                                <div class="am-chart-card__title">
+                                <div class="am-chart-card__title pi-dashboard-card-title" id="pi-am-chart-title-1">
                                     {% trans "Daily Attendance Rate" %}
                                 </div>
                                 <div
-                                    class="am-chart-card__subtitle"
+                                    class="am-chart-card__subtitle pi-dashboard-card-note"
                                     id="calendar-month"
                                 >
                                     {% trans "Present rate by day" %}
@@ -1230,19 +1233,19 @@
 
                     <!-- Attendance Overview -->
                     <div
-                        class="am-chart-card"
+                        class="am-chart-card pi-dashboard-card"
                         data-chart-id="attendance_overview"
                         data-chart-section="attendance"
                         data-chart-label="{% trans 'Attendance Daily Overview' %}"
                         data-chart-wide="1"
-                    >
+                     role="group" aria-labelledby="pi-am-chart-title-2">
                         <div class="am-chart-card__header">
                             <div>
-                                <div class="am-chart-card__title">
+                                <div class="am-chart-card__title pi-dashboard-card-title" id="pi-am-chart-title-2">
                                     {% trans "Attendance Daily Overview" %}
                                 </div>
                                 <div
-                                    class="am-chart-card__subtitle"
+                                    class="am-chart-card__subtitle pi-dashboard-card-note"
                                     id="att-overview-subtitle"
                                 >
                                     {% trans "On-time, late arrivals & early departures by department" %} — {% trans "Today" %}
@@ -1262,18 +1265,18 @@
 
                     <!-- Attendance % (Shift / Department / Work Type) -->
                     <div
-                        class="am-chart-card"
+                        class="am-chart-card pi-dashboard-card"
                         data-chart-id="absenteeism_trend"
                         data-chart-section="alerts"
                         data-chart-label="{% trans 'Attendance %' %}"
-                    >
+                     role="group" aria-labelledby="pi-am-chart-title-3">
                         <div class="am-chart-card__header">
                             <div>
-                                <div class="am-chart-card__title">
+                                <div class="am-chart-card__title pi-dashboard-card-title" id="pi-am-chart-title-3">
                                     {% trans "Attendance Percentage" %}
                                 </div>
                                 <div
-                                    class="am-chart-card__subtitle"
+                                    class="am-chart-card__subtitle pi-dashboard-card-note"
                                     id="absenteeism-subtitle"
                                 >
                                     {% trans "Attendance % by shift" %}
@@ -1304,18 +1307,18 @@
 
                     <!-- Absence % (Shift / Department / Work Type) -->
                     <div
-                        class="am-chart-card"
+                        class="am-chart-card pi-dashboard-card"
                         data-chart-id="absence_pct"
                         data-chart-section="alerts"
                         data-chart-label="{% trans 'Absence %' %}"
-                    >
+                     role="group" aria-labelledby="pi-am-chart-title-4">
                         <div class="am-chart-card__header">
                             <div>
-                                <div class="am-chart-card__title">
+                                <div class="am-chart-card__title pi-dashboard-card-title" id="pi-am-chart-title-4">
                                     {% trans "Absence Percentage" %}
                                 </div>
                                 <div
-                                    class="am-chart-card__subtitle"
+                                    class="am-chart-card__subtitle pi-dashboard-card-note"
                                     id="absence-pct-subtitle"
                                 >
                                     {% trans "Absence % by shift" %}
@@ -1345,18 +1348,18 @@
 
                     <!-- Late Come / Early Out -->
                     <div
-                        class="am-chart-card"
+                        class="am-chart-card pi-dashboard-card"
                         data-chart-id="late_early"
                         data-chart-section="alerts"
                         data-chart-label="{% trans 'Late Arrival & Early Departure' %}"
-                    >
+                     role="group" aria-labelledby="pi-am-chart-title-5">
                         <div class="am-chart-card__header">
                             <div>
-                                <div class="am-chart-card__title">
+                                <div class="am-chart-card__title pi-dashboard-card-title" id="pi-am-chart-title-5">
                                     {% trans "Late Arrival & Early Departure" %}
                                 </div>
                                 <div
-                                    class="am-chart-card__subtitle"
+                                    class="am-chart-card__subtitle pi-dashboard-card-note"
                                     id="late-early-subtitle"
                                 >
                                     {% trans "Today — by department" %}
@@ -1375,18 +1378,18 @@
 
                     <!-- Avg Working Hours -->
                     <div
-                        class="am-chart-card am-chart-card--wide"
+                        class="am-chart-card pi-dashboard-card am-chart-card--wide"
                         data-chart-id="avg_hours"
                         data-chart-section="hours"
                         data-chart-label="{% trans 'Avg Working Hours' %}"
-                    >
+                     role="group" aria-labelledby="pi-am-chart-title-6">
                         <div class="am-chart-card__header">
                             <div>
-                                <div class="am-chart-card__title">
+                                <div class="am-chart-card__title pi-dashboard-card-title" id="pi-am-chart-title-6">
                                     {% trans "Avg Working Hours" %}
                                 </div>
                                 <div
-                                    class="am-chart-card__subtitle"
+                                    class="am-chart-card__subtitle pi-dashboard-card-note"
                                     id="avg-hours-month"
                                 >
                                     {% trans "Per day by department" %}
@@ -1407,17 +1410,17 @@
 
                     <!-- Overtime by Department -->
                     <div
-                        class="am-chart-card"
+                        class="am-chart-card pi-dashboard-card"
                         data-chart-id="overtime_dept"
                         data-chart-section="hours"
                         data-chart-label="{% trans 'Overtime by Department' %}"
-                    >
+                     role="group" aria-labelledby="pi-am-chart-title-7">
                         <div class="am-chart-card__header">
                             <div>
-                                <div class="am-chart-card__title">
+                                <div class="am-chart-card__title pi-dashboard-card-title" id="pi-am-chart-title-7">
                                     {% trans "Overtime by Department" %}
                                 </div>
-                                <div class="am-chart-card__subtitle">
+                                <div class="am-chart-card__subtitle pi-dashboard-card-note">
                                     <span id="ot-month"
                                         >{% trans "This month" %}</span
                                     >
@@ -1437,17 +1440,17 @@
 
                     <!-- Hours Distribution -->
                     <div
-                        class="am-chart-card"
+                        class="am-chart-card pi-dashboard-card"
                         data-chart-id="hours_distribution"
                         data-chart-section="hours"
                         data-chart-label="{% trans 'Hours Distribution' %}"
-                    >
+                     role="group" aria-labelledby="pi-am-chart-title-8">
                         <div class="am-chart-card__header">
                             <div>
-                                <div class="am-chart-card__title">
+                                <div class="am-chart-card__title pi-dashboard-card-title" id="pi-am-chart-title-8">
                                     {% trans "Hours Distribution" %}
                                 </div>
-                                <div class="am-chart-card__subtitle">
+                                <div class="am-chart-card__subtitle pi-dashboard-card-note">
                                     {% trans "Employees with pending hours, by department" %}
                                 </div>
                             </div>
@@ -1461,10 +1464,10 @@
             </div>
 
             <!-- Right sidebar -->
-            <div class="am-sidebar">
-                <div class="am-info-panel">
+            <div class="am-sidebar pi-dashboard-side">
+                <div class="am-info-panel pi-dashboard-card">
                     <div class="am-info-panel__header am-info-panel__header--stacked">
-                        <div class="am-info-panel__title">
+                        <div class="am-info-panel__title pi-dashboard-card-title">
                             {% trans "Frequent Absentees" %}<span
                                 id="am-absentees-count"
                                 class="am-count-badge"
@@ -1521,7 +1524,7 @@
                 : "rgba(0,0,0,0.05)";
             const cardBg = isDark ? "#242424" : "#ffffff";
             const COLORS = [
-                "#E54F38",
+                "#4f46e5",
                 "#22c55e",
                 "#f59e0b",
                 "#ef4444",
@@ -1578,7 +1581,7 @@
             };
 
             const emptyHtml = (msg) =>
-                `<div class="am-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+                `<div class="am-empty pi-dashboard-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
 
             const attendanceUrl = "{% url 'attendance-view' %}";
             const attendanceUrlFor = (id) =>
@@ -2029,31 +2032,31 @@
                     .then((r) => r.json())
                     .then((data) => {
                         document.getElementById("am-kpi-grid").innerHTML = `
-                    <a href="{% url 'employee-view' %}?checked_in_on=${data.date}&is_active=True&filter_applied=on" class="am-kpi-card">
+                    <a href="{% url 'employee-view' %}?checked_in_on=${data.date}&is_active=True&filter_applied=on" class="am-kpi-card pi-dashboard-card">
                         <div class="am-kpi-card__icon am-kpi-card__icon--green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg></div>
                         <div class="am-kpi-card__label">{% trans "Checked In Today"|escapejs %}</div>
-                        <div class="am-kpi-card__value">${data.present_today}</div>
+                        <div class="am-kpi-card__value pi-dashboard-card-value">${data.present_today}</div>
                     </a>
-                    <a href="{% url 'request-attendance-view' %}?open_tab=2&attendance_date=${data.date}&attendance_on_time=True&filter_applied=on" class="am-kpi-card">
+                    <a href="{% url 'request-attendance-view' %}?open_tab=2&attendance_date=${data.date}&attendance_on_time=True&filter_applied=on" class="am-kpi-card pi-dashboard-card">
                         <div class="am-kpi-card__icon am-kpi-card__icon--blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
                         <div class="am-kpi-card__label">{% trans "On Time"|escapejs %}</div>
-                        <div class="am-kpi-card__value">${data.on_time}</div>
+                        <div class="am-kpi-card__value pi-dashboard-card-value">${data.on_time}</div>
                     </a>
-                    <a href="{% url 'late-come-early-out-view' %}?type=late_come&attendance_date=${data.date}&filter_applied=on" class="am-kpi-card">
+                    <a href="{% url 'late-come-early-out-view' %}?type=late_come&attendance_date=${data.date}&filter_applied=on" class="am-kpi-card pi-dashboard-card">
                         <div class="am-kpi-card__icon am-kpi-card__icon--amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
                         <div class="am-kpi-card__label">{% trans "Late Arrival"|escapejs %}</div>
-                        <div class="am-kpi-card__value">${data.late_come}</div>
+                        <div class="am-kpi-card__value pi-dashboard-card-value">${data.late_come}</div>
                     </a>
-                    <a href="{% url 'employee-view' %}?expected_to_check_in=${data.date}&is_active=True&filter_applied=on" class="am-kpi-card">
+                    <a href="{% url 'employee-view' %}?expected_to_check_in=${data.date}&is_active=True&filter_applied=on" class="am-kpi-card pi-dashboard-card">
                         <div class="am-kpi-card__icon am-kpi-card__icon--red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg></div>
                         <div class="am-kpi-card__label">{% trans "Not Checked In Today"|escapejs %}</div>
-                        <div class="am-kpi-card__value">${data.expected_to_check_in}</div>
+                        <div class="am-kpi-card__value pi-dashboard-card-value">${data.expected_to_check_in}</div>
 
                     </a>
-                    <a href="{% url 'attendance-view' %}?open_tab=2&attendance_overtime_approve=False&attendance_validated=True&attendance_date=${data.date}&filter_applied=on" class="am-kpi-card">
+                    <a href="{% url 'attendance-view' %}?open_tab=2&attendance_overtime_approve=False&attendance_validated=True&attendance_date=${data.date}&filter_applied=on" class="am-kpi-card pi-dashboard-card">
                         <div class="am-kpi-card__icon am-kpi-card__icon--amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
                         <div class="am-kpi-card__label">{% trans "Pending OT Requests"|escapejs %}</div>
-                        <div class="am-kpi-card__value">${data.pending_overtime}</div>
+                        <div class="am-kpi-card__value pi-dashboard-card-value">${data.pending_overtime}</div>
                     </a>`;
                     })
                     .catch(() => {
@@ -3269,4 +3272,5 @@
             }
         })();
     </script>
+</div>
 {% endblock %}

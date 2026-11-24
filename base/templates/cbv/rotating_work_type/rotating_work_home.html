@@ -1,5 +1,7 @@
 {% extends "index.html" %}
 {% block content %}
+<div class="pi-time">
+
 {% load static %}
 {% load i18n %}
 <script src="{% static '/base/actions.js' %}"></script>
@@ -17,4 +19,5 @@
 <script src="{% static 'basedOn.js' %}"></script>
 <script src="{% static 'cbv/work_type_request/work_request_bulk_action.js' %}"></script>
 
+</div>
 {% endblock content %}

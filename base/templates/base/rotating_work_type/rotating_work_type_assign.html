@@ -1,4 +1,6 @@
-{% extends 'index.html' %} {% block content %} {% load static %} {% load i18n %}
+{% extends 'index.html' %} {% block content %}
+<div class="pi-time">
+ {% load static %} {% load i18n %}
 <style>
   form label {
     margin: 5px 0;
@@ -25,4 +27,5 @@
 </div>
 
 <script src="{% static 'basedOn.js' %}"></script>
+</div>
 {% endblock content %}

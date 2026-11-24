@@ -3,8 +3,11 @@
 {% load i18n %}
 
 {% block content %}
+<div class="pi-time">
+
     <meta name="csrf-token" content="{{ csrf_token }}">
 
     {% include "generic/components.html" %}
     <div hx-get='{% url "leave-settings-tab-view" %}' hx-trigger="load"></div>
+</div>
 {% endblock content %}

@@ -2,6 +2,8 @@
 {% load static %}
 {% load i18n %}
 {% block content %}
+<div class="pi-time">
+
     {% include 'attendance/late_come_early_out/nav.html' %}
     <div class="oh-checkpoint-badge mb-2" id="selectedLatecome" data-ids="[]" data-clicked="" style="display: none">
         {% trans 'Selected Attendance' %}
@@ -45,4 +47,5 @@
             <div class="oh-modal__dialog-body" id="penaltyViewModalBody"></div>
         </div>
     </div>
+</div>
 {% endblock %}

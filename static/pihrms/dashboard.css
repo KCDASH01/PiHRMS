@@ -1,0 +1,218 @@
+.pi-dashboard {
+    --pi-dashboard-active: var(--pi-active-text, #4338ca);
+    --pi-dashboard-subtle: var(--pi-primary-subtle, #eef2ff);
+    --pi-dashboard-surface: var(--pi-surface, #fff);
+    --pi-dashboard-line: var(--pi-line, #e2e8f0);
+    --pi-dashboard-heading: var(--pi-heading, #0f172a);
+    --pi-dashboard-body: var(--pi-body, #334155);
+    --pi-dashboard-muted: var(--pi-muted, #64748b);
+    --pi-dashboard-focus: var(--pi-focus, #4f46e5);
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--pi-dashboard-body);
+    font-family: Inter, system-ui, "Segoe UI", sans-serif;
+}
+
+.dark .pi-dashboard {
+    --pi-dashboard-active: var(--pi-active-text, #e0e7ff);
+    --pi-dashboard-subtle: var(--pi-primary-subtle, #312e58);
+    --pi-dashboard-surface: var(--pi-surface, #242424);
+    --pi-dashboard-line: var(--pi-line, #3f3f46);
+    --pi-dashboard-heading: var(--pi-heading, #f8fafc);
+    --pi-dashboard-body: var(--pi-body, #e2e8f0);
+    --pi-dashboard-muted: var(--pi-muted, #cbd5e1);
+    --pi-dashboard-focus: var(--pi-focus, #a5b4fc);
+    background: transparent;
+}
+
+.pi-dashboard .pi-dashboard-header {
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 0 0 1.25rem;
+    padding: clamp(1rem, 2.4vw, 1.5rem);
+    border: 1px solid var(--pi-dashboard-line);
+    border-radius: 0.875rem;
+    background: var(--pi-dashboard-surface);
+}
+
+.pi-dashboard .pi-dashboard-header > *,
+.pi-dashboard .pi-dashboard-actions > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.pi-dashboard .pi-dashboard-header h1 {
+    margin: 0;
+    color: var(--pi-dashboard-heading);
+    font-size: clamp(1.5rem, 2.8vw, 1.875rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.pi-dashboard .pi-dashboard-welcome {
+    margin: 0 0 0.375rem;
+    color: var(--pi-dashboard-active);
+    font-size: 0.875rem;
+    font-weight: 650;
+}
+
+.pi-dashboard :is(.pi-dashboard-date, .pi-dashboard-card-note, [class*="-kpi-card__label"], [class*="-kpi-card__sub"]) {
+    color: var(--pi-dashboard-muted);
+    opacity: 1;
+}
+
+.pi-dashboard .pi-dashboard-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.pi-dashboard .pi-dashboard-actions > :is(a.oh-btn, button.oh-btn) {
+    border: 1px solid var(--pi-dashboard-line);
+    border-radius: 0.625rem;
+    background: var(--pi-dashboard-subtle);
+    color: var(--pi-dashboard-active);
+}
+
+.pi-dashboard .pi-dashboard-actions > :is(a.oh-btn, button.oh-btn):hover {
+    border-color: var(--pi-dashboard-focus);
+}
+
+.pi-dashboard .pi-dashboard-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.25rem), 1fr));
+    gap: 0.875rem;
+}
+
+.pi-dashboard .pi-dashboard-card,
+.pi-dashboard.pi-dashboard--legacy .shadow-card {
+    min-width: 0;
+    border: 1px solid var(--pi-dashboard-line);
+    border-radius: 0.875rem;
+    background: var(--pi-dashboard-surface);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.pi-dashboard .pi-dashboard-card-value {
+    color: var(--pi-dashboard-heading);
+    font-size: clamp(1.5rem, 2.5vw, 1.875rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.pi-dashboard .pi-dashboard-card-title {
+    color: var(--pi-dashboard-heading);
+    font-size: 0.9375rem;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.pi-dashboard .pi-dashboard-period {
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
+.pi-dashboard .pi-dashboard-period :is(input, button) {
+    max-width: 100%;
+    min-height: 2.25rem;
+    border-radius: 0.5rem;
+}
+
+.pi-dashboard .pi-dashboard-empty {
+    color: var(--pi-dashboard-muted);
+    overflow-wrap: anywhere;
+}
+
+.pi-dashboard .pi-dashboard-side {
+    top: calc(var(--pi-header-height, 4.625rem) + 1rem);
+    max-height: calc(100dvh - var(--pi-header-height, 4.625rem) - 2rem);
+}
+
+.pi-dashboard :is(button, a, summary, select, input, [tabindex]):focus-visible {
+    outline: 2px solid var(--pi-dashboard-focus);
+    outline-offset: 2px;
+}
+
+.pi-dashboard :is(.apexcharts-xaxis text, .apexcharts-yaxis text) {
+    fill: var(--pi-dashboard-muted);
+}
+
+.pi-dashboard .apexcharts-legend-text {
+    color: var(--pi-dashboard-body);
+}
+
+[id$="-customize-panel"][class$="-customize-panel"],
+[id$="-customize-panel"][class*="-customize-panel "] {
+    max-inline-size: 100%;
+    height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+[id$="-customize-panel"] [class$="-customize-panel__body"] {
+    min-height: 0;
+    overscroll-behavior: contain;
+}
+
+[id$="-customize-panel"] [class$="-customize-panel__footer"] {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.pi-dashboard .md-modal {
+    max-height: 85dvh;
+}
+
+.pi-dashboard .md-modal__body {
+    min-height: 0;
+    overscroll-behavior: contain;
+}
+
+@media (height < 480px) {
+    .pi-dashboard .pi-dashboard-side {
+        position: static;
+        max-height: none;
+    }
+}
+
+@media (width < 1024px) {
+    .pi-dashboard .pi-dashboard-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pi-dashboard .pi-dashboard-side {
+        position: static;
+        max-height: none;
+    }
+}
+
+@media (width < 768px) {
+    .pi-dashboard .pi-dashboard-header {
+        flex-wrap: wrap;
+    }
+
+    .pi-dashboard .pi-dashboard-period :is(input, button) {
+        min-height: 2.75rem;
+    }
+
+    .pi-dashboard .pi-dashboard-period input {
+        flex: 1 1 8rem;
+        min-width: 0;
+    }
+
+    .pi-dashboard .pi-dashboard-chart-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pi-dashboard .pi-dashboard-skeleton,
+    .pi-dashboard .pi-dashboard-skeleton * {
+        animation: none !important;
+    }
+}

@@ -14,7 +14,8 @@
                     </button>
                     <span class="at_work_seconds" data-at-work-seconds = "{{ get_forecasted_at_work.forecasted_at_work_seconds|default:0 }}" data-run= "{{run|default:1}}" ></span> {% endcomment %}
                     <button
-                        class="check checkout{% if geo_on %} geo-clock-btn{% endif %}"
+                        class="check checkout pi-time-clock{% if geo_on %} geo-clock-btn{% endif %}"
+                        type="button" aria-label="{% trans 'Check Out' %}"
                         {% if geo_on %}
                             data-clock-url="{% url 'clock-out' %}"
                         {% else %}
@@ -61,7 +62,8 @@
                     </button>
                     <span class="at_work_seconds" data-at-work-seconds = "{{ get_forecasted_at_work.forecasted_at_work_seconds|default:0 }}" data-run= "{{run|default:0}}" ></span> {% endcomment %}
                     <button
-                        class="check checkin{% if geo_on %} geo-clock-btn{% endif %}"
+                        class="check checkin pi-time-clock{% if geo_on %} geo-clock-btn{% endif %}"
+                        type="button" aria-label="{% trans 'Check In' %}"
                         {% if geo_on %}
                             data-clock-url="{% url 'clock-in' %}"
                         {% else %}

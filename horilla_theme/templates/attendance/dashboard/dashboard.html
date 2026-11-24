@@ -1,6 +1,11 @@
 {% extends 'index.html' %}
 {% load static i18n horillafilters mathfilters basefilters attendancefilters %}
 {% block content %}
+<div class="pi-time">
+
+{% include "pihrms/dashboard_styles.html" %}
+<div class="pi-dashboard pi-dashboard--legacy">
+
     <style>
         .oh-info {
             top: 2px !important;
@@ -245,4 +250,6 @@
         	$("#department_date_type").val("monthly").change()
         })
     </script>
+</div>
+</div>
 {% endblock %}

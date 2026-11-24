@@ -1,5 +1,5 @@
 {% load i18n horillafilters %}
-<div class="flex gap-4 pt-1">
+<div class="flex gap-4 pt-1 pi-employee-card-body">
     {% if instance.get_avatar %}
     <div class="relative flex-shrink-0 w-11 h-11">
         <img
@@ -18,12 +18,20 @@
     </div>
     {% endif %}
     <div class="min-w-0">
-        <h5 class="mb-1 font-medium text-sm truncate">{{ instance.employee_name_with_badge_id }}</h5>
-        <div class="text-xs text-[#565E6C] mb-1 grid">
+        <h5 class="mb-1 font-medium text-sm">
+            <a class="pi-employee-card-name" href="{{ instance.get_individual_url }}" onclick="event.stopPropagation()">{{ instance.employee_name_with_badge_id }}</a>
+        </h5>
+        <div class="text-xs text-[#565E6C] mb-1 grid pi-employee-card-meta">
             <span class="truncate">{{ instance.get_email }}</span>
             {% if instance.employee_work_info.job_position_id %}
-            <span class="truncate">{{ instance.employee_work_info.job_position_id }}</span>
+            <span class="truncate" title="{{ instance.employee_work_info.job_position_id }}">{{ instance.employee_work_info.job_position_id }}</span>
+            {% endif %}
+            {% if instance.employee_work_info.department_id %}
+                <span class="truncate" title="{{ instance.employee_work_info.department_id }}">{{ instance.employee_work_info.department_id }}</span>
             {% endif %}
         </div>
+        <span class="pi-employee-card-status{% if not instance.is_active %} pi-employee-card-status--archived{% endif %}">
+            {% if instance.is_active %}{% trans 'Active' %}{% else %}{% trans 'Archived' %}{% endif %}
+        </span>
     </div>
 </div>

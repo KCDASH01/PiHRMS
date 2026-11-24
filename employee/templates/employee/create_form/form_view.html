@@ -1,4 +1,7 @@
-{% extends 'index.html' %} {% block content %} {% load static %} {% load i18n %}
+{% extends 'index.html' %} {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-edit">
+ {% load static %} {% load i18n %}
 <div id="view-container">
     <section
         class="oh-wrapper oh-main__topbar oh-profile-section__topbar"
@@ -28,5 +31,6 @@
     <div id="personal-info">
         {% include 'employee/create_form/personal_info.html' %}
     </div>
-    {% endblock content %}
+    </div>
+{% endblock content %}
 </div>

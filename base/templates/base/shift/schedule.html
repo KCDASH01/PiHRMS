@@ -1,6 +1,8 @@
 {% extends 'settings.html' %}
 {% load i18n %}
-{% block settings %}{% load static %}
+{% block settings %}
+<div class="pi-time">
+{% load static %}
     {% include "generic/components.html" %}
     <style>
         .select2-selection--single {
@@ -56,4 +58,5 @@
             }
         }
     </script>
+</div>
 {% endblock settings %}

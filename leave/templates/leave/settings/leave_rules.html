@@ -1,5 +1,7 @@
 {% extends 'settings.html' %}
-{% block settings %}{% load i18n %}{% load horillafilters %}{% load static %}
+{% block settings %}
+<div class="pi-time">
+{% load i18n %}{% load horillafilters %}{% load static %}
 <div class="mb-4">
     <h4 class="text-base font-semibold text-[#333]">{% trans "Leave Rules" %}</h4>
 </div>
@@ -101,4 +103,5 @@
     </div>
 </div>
 {% endif %}
+</div>
 {% endblock settings %}

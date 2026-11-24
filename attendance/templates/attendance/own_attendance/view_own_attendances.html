@@ -1,7 +1,10 @@
 {% extends 'index.html' %}
 {% block content %}
+<div class="pi-time">
+
     {% include 'attendance/own_attendance/nav.html' %}
     <div id="attendance-container" class="oh-wrapper">
         {% include 'attendance/own_attendance/attendances.html' %}
     </div>
+</div>
 {% endblock content %}

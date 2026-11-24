@@ -3,6 +3,9 @@
 
 {% now "Y-m-d" as current_date %}
 
+
+{% include "pihrms/dashboard_styles.html" %}
+<div class="pi-dashboard pi-dashboard--legacy">
 <!-- Stats Cards -->
 
 <style>
@@ -309,3 +312,5 @@
     <script src="{% static 'dashboard/onLeave.js' %}"></script>
     <script src="{% static 'dashboard/leaveChart.js' %}"></script>
 {% endif %}
+
+</div>

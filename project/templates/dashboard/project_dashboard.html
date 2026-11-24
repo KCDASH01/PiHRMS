@@ -1,5 +1,8 @@
 {% extends 'index.html' %}
 {% block content %}
+{% include "pihrms/dashboard_styles.html" %}
+<div class="pi-dashboard pi-dashboard--legacy">
+
 {% load static i18n %}
 {% load i18n %}
 
@@ -140,4 +143,5 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'dashboard/projectChart.js' %}"></script>
 
+</div>
 {% endblock content %}

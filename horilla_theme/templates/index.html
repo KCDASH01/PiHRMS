@@ -283,12 +283,15 @@
             </style>
         {% endwith %}
 
+        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/pihrms-shell.css' %}">
+        <script defer src="{% static 'horilla_theme/assets/js/pihrms-shell.js' %}"></script>
         {% block styles %}
             <!-- Page-specific styles (optional) -->
         {% endblock %}
+    <link rel="stylesheet" href="{% static 'pihrms/time-off.css' %}">
     </head>
 
-    <body class="bg-[{{theme_obj.primary_50}}] font-[Inter,_sans-serif] overflow-hidden {% if request.session.theme == 'dark' %}dark{% endif %}">
+    <body class="pi-shell bg-[{{theme_obj.primary_50}}] font-[Inter,_sans-serif] overflow-hidden {% if request.session.theme == 'dark' %}dark{% endif %}">
         {% get_current_language_bidi as LANGUAGE_BIDI %}
         {% get_current_language as LANGUAGE_CODE %}
         <div hidden id="statiUrl" data-url='{% static "" %}'></div>
@@ -306,6 +309,8 @@
         >
         </button>
 
+        <a class="pi-shell-skip" href="#ohMainContent">{% trans "Skip to content" %}</a>
+        <div id="piSidebarBackdrop" class="pi-sidebar-backdrop" hidden></div>
         <!-- Include Sidebar (sidebar.html owns id="sidebar" itself) -->
         {% include "horilla_theme/components/sidebar.html" %}
 
@@ -322,9 +327,7 @@
                         var pinned = stored === null ? true : stored === 'true';
                         if (pinned) {
                             var sidebarEl = document.getElementById('sidebar');
-                            var contentEl = document.currentScript.parentNode;
                             if (sidebarEl) sidebarEl.classList.add('sidebar-pinned');
-                            if (contentEl) contentEl.style.marginLeft = '13rem';
                         }
                     } catch (_) {}
                 })();
@@ -335,7 +338,7 @@
                     {% include "horilla_theme/components/header.html" %}
                 </div>
 
-                <div id="ohMainContent" class="p-6 pt-24">
+                <div id="ohMainContent" class="p-6 pt-24" role="main" tabindex="-1">
                     {% block content %}
                         {% include "horilla_theme/components/dashboard.html" %}
                     {% endblock %}

@@ -1,6 +1,9 @@
 {% extends 'index.html' %}
 {% load i18n %}
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-edit">
+
 <div id="view-container" class="oh-wrapper">
 <div id="employee-update-form-root" class="oh-wrapper">
     <section class="oh-wrapper oh-main__topbar oh-profile-section__topbar" x-data="{searchShow: false}">
@@ -68,4 +71,5 @@
 </div>
 </div>
 
+</div>
 {% endblock content %}

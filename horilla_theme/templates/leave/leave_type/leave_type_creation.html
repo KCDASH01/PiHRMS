@@ -3,6 +3,8 @@
 {% load i18n %}
 {% get_company as theme_obj %}
 {% block content %}
+<div class="pi-time">
+
     {% if form.errors %}
         <!-- form errors  -->
         <div class="oh-wrapper">
@@ -909,4 +911,5 @@
             showSave();
         })();
     </script>
+</div>
 {% endblock %}

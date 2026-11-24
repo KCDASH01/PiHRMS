@@ -3,8 +3,8 @@
 <div class="grid gap-4 lg:grid-cols-12">
     <!-- Personal Information -->
     <section class="lg:col-span-4">
-        <div class="overflow-hidden rounded-xl border border-[#ebebeb]">
-            <div class="flex items-center justify-between bg-[#f3f3f3] px-3 py-3">
+        <div class="pi-employee-section overflow-hidden rounded-xl border border-[#ebebeb]">
+            <div class="pi-employee-section-title flex items-center justify-between bg-[#f3f3f3] px-3 py-3">
                 <h3 class="text-sm font-semibold text-[#333]">{% trans "Personal Information" %}</h3>
             </div>
 
@@ -109,8 +109,8 @@
     <div class="space-y-4 lg:col-span-8">
         <!-- Work Information -->
         <section>
-            <div class="overflow-hidden rounded-xl border border-[#ebebeb]">
-                <div class="flex items-center justify-between bg-[#f3f3f3] px-3 py-3">
+            <div class="pi-employee-section overflow-hidden rounded-xl border border-[#ebebeb]">
+                <div class="pi-employee-section-title flex items-center justify-between bg-[#f3f3f3] px-3 py-3">
                     <h3 class="text-sm font-semibold text-[#333]">{% trans "Work Information" %}</h3>
                 </div>
                 <div class="bg-white px-3 py-3">
@@ -448,8 +448,8 @@
         <!-- Bank Information -->
         {% if perms.employee.view_employeebankdetails or request.user == employee.employee_user_id %}
             <section>
-                <div class="overflow-hidden rounded-xl border border-[#ebebeb]">
-                    <div class="flex items-center justify-between bg-[#f3f3f3] px-3 py-3">
+                <div class="pi-employee-section overflow-hidden rounded-xl border border-[#ebebeb]">
+                    <div class="pi-employee-section-title flex items-center justify-between bg-[#f3f3f3] px-3 py-3">
                         <h3 class="text-sm font-semibold text-[#333]">{% trans "Bank Information" %}</h3>
                     </div>
                     <div class="bg-white px-3 py-3">

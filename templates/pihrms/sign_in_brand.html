@@ -1,0 +1,19 @@
+{% load i18n static %}
+<aside class="pi-auth-brand">
+    <div>
+        <img
+            class="pi-auth-wordmark"
+            src="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'images/brand/pihrms-logo.svg' %}{% endif %}"
+            alt="{% if white_label_company.icon %}{{ white_label_company_name }}{% else %}PiHRMS{% endif %}"
+            width="{% if white_label_company.icon %}80{% else %}184{% endif %}"
+        >
+        {% if white_label_company %}
+            <p class="pi-auth-company">{{ white_label_company_name }}</p>
+        {% endif %}
+    </div>
+    <div class="pi-auth-intro">
+        <p>{% trans "Your HR workspace" %}</p>
+        <span>{% trans "Manage your workday, time off, and employee information in one place." %}</span>
+    </div>
+    <div class="pi-auth-pattern" aria-hidden="true"></div>
+</aside>

@@ -6,7 +6,7 @@
     {% include "components/legend_prefs.html" %}
     <style>
         :root {
-            --md-indigo: var(--primary-600, #e54f38);
+            --md-indigo: var(--pi-primary, #4f46e5);
             --md-green: #22c55e;
             --md-amber: #f59e0b;
             --md-red: #ef4444;
@@ -379,7 +379,7 @@
             pointer-events: none;
         }
         .md-chart-card[data-chart-section='overview']::before {
-            background: linear-gradient(90deg, #e54f38, #a855f7);
+            background: linear-gradient(90deg, #4f46e5, #a855f7);
         }
         .md-chart-card[data-chart-section='attendance']::before {
             background: linear-gradient(90deg, #22c55e, #06b6d4);
@@ -388,7 +388,7 @@
             background: linear-gradient(90deg, #f59e0b, #ef4444);
         }
         .md-chart-card[data-chart-section='leave']::before {
-            background: linear-gradient(90deg, #3b82f6, #e54f38);
+            background: linear-gradient(90deg, #3b82f6, #4f46e5);
         }
 
         .md-chart-card--wide {
@@ -1843,12 +1843,16 @@
         }
     </style>
 
-    <div class="md-dashboard">
+    {% include "pihrms/dashboard_styles.html" %}
+    <div class="md-dashboard pi-dashboard">
         <!-- Header -->
-        <div class="md-header">
+        <div class="md-header pi-dashboard-header">
             <div>
+                {% if request.user.employee_get.employee_first_name %}
+                    <p class="pi-dashboard-welcome">{% blocktrans with first_name=request.user.employee_get.employee_first_name %}Welcome, {{ first_name }}{% endblocktrans %}</p>
+                {% endif %}
                 <h1>{% trans "Dashboard" %}</h1>
-                <div class="md-header__date" id="md-date"></div>
+                <div class="md-header__date pi-dashboard-date" id="md-date"></div>
                 {% if dashboard_company_label %}
                     <div
                         class="md-company-chip"
@@ -1872,8 +1876,8 @@
                     </button>
                 </div>
             </div>
-            <div class="md-header__actions">
-                <div class="md-period-picker">
+            <div class="md-header__actions pi-dashboard-actions">
+                <div class="md-period-picker pi-dashboard-period">
                     <button class="md-period-preset" data-preset="today">{% trans "Today" %}</button>
                     <button class="md-period-preset" data-preset="this_week">{% trans "This Week" %}</button>
                     <button class="md-period-preset" data-preset="last_week">{% trans "Last Week" %}</button>
@@ -1936,49 +1940,49 @@
             {% include "base/setup_checklist_banner.html" %}
         {% endif %}
 
-        <div class="md-kpi-grid" id="md-kpi-grid">
-            <div class="md-kpi-card md-kpi-card--skeleton">
-                <div class="md-skeleton md-skeleton--icon"></div>
-                <div class="md-skeleton md-skeleton--label"></div>
-                <div class="md-skeleton md-skeleton--value"></div>
-                <div class="md-skeleton md-skeleton--sub"></div>
+        <div class="md-kpi-grid pi-dashboard-kpis" id="md-kpi-grid">
+            <div class="md-kpi-card pi-dashboard-card md-kpi-card--skeleton">
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--icon"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--label"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--value"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--sub"></div>
             </div>
-            <div class="md-kpi-card md-kpi-card--skeleton">
-                <div class="md-skeleton md-skeleton--icon"></div>
-                <div class="md-skeleton md-skeleton--label"></div>
-                <div class="md-skeleton md-skeleton--value"></div>
-                <div class="md-skeleton md-skeleton--sub"></div>
+            <div class="md-kpi-card pi-dashboard-card md-kpi-card--skeleton">
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--icon"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--label"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--value"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--sub"></div>
             </div>
-            <div class="md-kpi-card md-kpi-card--skeleton">
-                <div class="md-skeleton md-skeleton--icon"></div>
-                <div class="md-skeleton md-skeleton--label"></div>
-                <div class="md-skeleton md-skeleton--value"></div>
-                <div class="md-skeleton md-skeleton--sub"></div>
+            <div class="md-kpi-card pi-dashboard-card md-kpi-card--skeleton">
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--icon"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--label"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--value"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--sub"></div>
             </div>
-            <div class="md-kpi-card md-kpi-card--skeleton">
-                <div class="md-skeleton md-skeleton--icon"></div>
-                <div class="md-skeleton md-skeleton--label"></div>
-                <div class="md-skeleton md-skeleton--value"></div>
-                <div class="md-skeleton md-skeleton--sub"></div>
+            <div class="md-kpi-card pi-dashboard-card md-kpi-card--skeleton">
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--icon"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--label"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--value"></div>
+                <div class="md-skeleton pi-dashboard-skeleton md-skeleton--sub"></div>
             </div>
         </div>
 
         <!-- Main layout -->
-        <div class="md-layout">
+        <div class="md-layout pi-dashboard-layout">
             <!-- Left: Charts (single flat grid for reordering) -->
             <div class="md-main">
-                <div class="md-chart-grid" id="md-charts-container">
+                <div class="md-chart-grid pi-dashboard-chart-grid" id="md-charts-container">
                     <!-- Department Headcount -->
                     <div
-                        class="md-chart-card"
+                        class="md-chart-card pi-dashboard-card"
                         data-chart-id="department_headcount"
                         data-chart-section="overview"
                         data-chart-label="{% trans 'Department Headcount' %}"
-                    >
+                     role="group" aria-labelledby="pi-md-chart-title-1">
                         <div class="md-chart-card__header">
                             <div>
-                                <div class="md-chart-card__title">{% trans "Department Headcount" %}</div>
-                                <div class="md-chart-card__subtitle">{% trans "All departments" %}</div>
+                                <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-1">{% trans "Department Headcount" %}</div>
+                                <div class="md-chart-card__subtitle pi-dashboard-card-note">{% trans "All departments" %}</div>
                             </div>
                         </div>
                         <div class="md-chart-card__body">
@@ -1990,15 +1994,15 @@
                     {% if perms.leave.view_leaverequest or request.user.is_superuser %}
                         <!-- Leave Trends -->
                         <div
-                            class="md-chart-card"
+                            class="md-chart-card pi-dashboard-card"
                             data-chart-id="leave_trends"
                             data-chart-section="overview"
                             data-chart-label="{% trans 'Leave Trends' %}"
-                        >
+                         role="group" aria-labelledby="pi-md-chart-title-2">
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Leave Trends" %}</div>
-                                    <div class="md-chart-card__subtitle">{% trans "Unique approved leave requests by department" %}<span data-period-label></span></div>
+                                    <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-2">{% trans "Leave Trends" %}</div>
+                                    <div class="md-chart-card__subtitle pi-dashboard-card-note">{% trans "Unique approved leave requests by department" %}<span data-period-label></span></div>
                                 </div>
                                 <a
                                     class="md-card-link"
@@ -2019,15 +2023,15 @@
 
                     <!-- Gender Distribution -->
                     <div
-                        class="md-chart-card"
+                        class="md-chart-card pi-dashboard-card"
                         data-chart-id="gender_distribution"
                         data-chart-section="overview"
                         data-chart-label="{% trans 'Gender Distribution' %}"
-                    >
+                     role="group" aria-labelledby="pi-md-chart-title-3">
                         <div class="md-chart-card__header">
                             <div>
-                                <div class="md-chart-card__title">{% trans "Gender Distribution" %}</div>
-                                <div class="md-chart-card__subtitle" id="gender-subtitle">{% trans "Active employees" %}</div>
+                                <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-3">{% trans "Gender Distribution" %}</div>
+                                <div class="md-chart-card__subtitle pi-dashboard-card-note" id="gender-subtitle">{% trans "Active employees" %}</div>
                             </div>
                             <select id="gender-dimension" class="md-dimension-select" aria-label="{% trans 'Group gender by' %}">
                                 <option value="overall">{% trans "Overall" %}</option>
@@ -2043,15 +2047,15 @@
                     {% if perms.leave.view_leaverequest or request.user.is_superuser %}
                         <!-- Leave Type Breakdown -->
                         <div
-                            class="md-chart-card"
+                            class="md-chart-card pi-dashboard-card"
                             data-chart-id="leave_breakdown"
                             data-chart-section="overview"
                             data-chart-label="{% trans 'Leave Type Breakdown' %}"
-                        >
+                         role="group" aria-labelledby="pi-md-chart-title-4">
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Leave Type Breakdown" %}</div>
-                                    <div class="md-chart-card__subtitle">{% trans "Approved vs pending by leave type" %}<span data-period-label></span></div>
+                                    <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-4">{% trans "Leave Type Breakdown" %}</div>
+                                    <div class="md-chart-card__subtitle pi-dashboard-card-note">{% trans "Approved vs pending by leave type" %}<span data-period-label></span></div>
                                 </div>
                             </div>
                             <div class="md-chart-card__body">
@@ -2064,16 +2068,16 @@
                     {% if perms.attendance.view_attendance or request.user.is_superuser or home_role == "manager" %}
                         <!-- Attendance Overview -->
                         <div
-                            class="md-chart-card md-chart-card--wide"
+                            class="md-chart-card pi-dashboard-card md-chart-card--wide"
                             data-chart-id="attendance_overview"
                             data-chart-section="attendance"
                             data-chart-label="{% trans 'Attendance Daily Overview' %}"
                             data-chart-wide="1"
-                        >
+                         role="group" aria-labelledby="pi-md-chart-title-5">
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Attendance Daily Overview" %}</div>
-                                    <div class="md-chart-card__subtitle">
+                                    <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-5">{% trans "Attendance Daily Overview" %}</div>
+                                    <div class="md-chart-card__subtitle pi-dashboard-card-note">
                                         {% trans "On-time, late arrivals & early departures by department" %} — {% trans "Today" %}
                                     </div>
                                 </div>
@@ -2091,16 +2095,16 @@
                     {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
                         <!-- Recruitment Pipeline -->
                         <div
-                            class="md-chart-card md-chart-card--wide"
+                            class="md-chart-card pi-dashboard-card md-chart-card--wide"
                             data-chart-id="recruitment_pipeline"
                             data-chart-section="recruitment"
                             data-chart-label="{% trans 'Recruitment Pipeline Trend' %}"
                             data-chart-wide="1"
-                        >
+                         role="group" aria-labelledby="pi-md-chart-title-6">
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Recruitment Pipeline Trend" %}</div>
-                                    <div class="md-chart-card__subtitle" id="pipeline-subtitle">{% trans "All open recruitments — active candidates at each stage" %}</div>
+                                    <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-6">{% trans "Recruitment Pipeline Trend" %}</div>
+                                    <div class="md-chart-card__subtitle pi-dashboard-card-note" id="pipeline-subtitle">{% trans "All open recruitments — active candidates at each stage" %}</div>
                                 </div>
                             </div>
                             <div class="md-chart-card__body">
@@ -2111,17 +2115,17 @@
 
                         <!-- Hiring Timeline -->
                         <div
-                            class="md-chart-card md-chart-card--wide"
+                            class="md-chart-card pi-dashboard-card md-chart-card--wide"
                             data-chart-id="hiring_timeline"
                             data-chart-section="recruitment"
                             data-chart-label="{% trans 'Shortlisting Timeline' %}"
                             data-chart-wide="1"
                             data-chart-default="hidden"
-                        >
+                         role="group" aria-labelledby="pi-md-chart-title-7">
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Shortlisting Timeline" %}</div>
-                                    <div class="md-chart-card__subtitle">{% trans "Shortlisted candidates by month, by job position" %}<span data-period-year-label></span></div>
+                                    <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-7">{% trans "Shortlisting Timeline" %}</div>
+                                    <div class="md-chart-card__subtitle pi-dashboard-card-note">{% trans "Shortlisted candidates by month, by job position" %}<span data-period-year-label></span></div>
                                 </div>
                             </div>
                             <div class="md-chart-card__body">
@@ -2137,16 +2141,16 @@
                     {% if perms.employee.view_employee or request.user.is_superuser %}
                         <!-- Employee Turnover -->
                         <div
-                            class="md-chart-card md-chart-card--wide"
+                            class="md-chart-card pi-dashboard-card md-chart-card--wide"
                             data-chart-id="employee_turnover"
                             data-chart-section="overview"
                             data-chart-label="{% trans 'Hire vs Turnover' %}"
                             data-chart-wide="1"
-                        >
+                         role="group" aria-labelledby="pi-md-chart-title-8">
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Hire vs Turnover" %}</div>
-                                    <div class="md-chart-card__subtitle" id="turnover-rate">
+                                    <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-8">{% trans "Hire vs Turnover" %}</div>
+                                    <div class="md-chart-card__subtitle pi-dashboard-card-note" id="turnover-rate">
                                         {% trans "New hires vs exits — last 6 months" %}
                                     </div>
                                 </div>
@@ -2171,15 +2175,15 @@
                     {% if perms.helpdesk.view_ticket or request.user.is_superuser %}
                         <!-- Ticket Priority (open tickets) -->
                         <div
-                            class="md-chart-card"
+                            class="md-chart-card pi-dashboard-card"
                             data-chart-id="ticket_priority"
                             data-chart-section="helpdesk"
                             data-chart-label="{% trans 'Open Tickets by Priority' %}"
-                        >
+                         role="group" aria-labelledby="pi-md-chart-title-9">
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Open Tickets by Priority" %}</div>
-                                    <div class="md-chart-card__subtitle">
+                                    <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-9">{% trans "Open Tickets by Priority" %}</div>
+                                    <div class="md-chart-card__subtitle pi-dashboard-card-note">
                                         {% trans "Closed tickets excluded" %}<span data-period-label></span>
                                     </div>
                                 </div>
@@ -2196,18 +2200,18 @@
 
                         <!-- Overdue tickets list -->
                         <div
-                            class="md-chart-card"
+                            class="md-chart-card pi-dashboard-card"
                             data-chart-id="overdue_tickets"
                             data-chart-section="helpdesk"
                             data-chart-label="{% trans 'Overdue Tickets' %}"
-                        >
+                         role="group" aria-labelledby="pi-md-chart-title-10">
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">
+                                    <div class="md-chart-card__title pi-dashboard-card-title" id="pi-md-chart-title-10">
                                         {% trans "Overdue Tickets" %}
                                         <span class="md-badge md-badge--red" id="overdue-tickets-count" style="margin-left: 6px; display: none"></span>
                                     </div>
-                                    <div class="md-chart-card__subtitle">
+                                    <div class="md-chart-card__subtitle pi-dashboard-card-note">
                                         {% trans "Open and past deadline, most overdue first" %}<span data-period-label></span>
                                     </div>
                                 </div>
@@ -2229,11 +2233,11 @@
             </div>
 
             <!-- Right sidebar -->
-            <div class="md-sidebar">
-                <div class="md-info-panel">
+            <div class="md-sidebar pi-dashboard-side">
+                <div class="md-info-panel pi-dashboard-card">
                     <div class="md-info-panel__header">
                         <div class="md-info-panel__heading">
-                            <div class="md-info-panel__title">{% trans "Announcements" %}<span id="md-announcements-count" class="md-count-badge" hidden title="{% trans 'Announcements' %}">0</span></div>
+                            <div class="md-info-panel__title pi-dashboard-card-title">{% trans "Announcements" %}<span id="md-announcements-count" class="md-count-badge" hidden title="{% trans 'Announcements' %}">0</span></div>
                             <div class="md-info-panel__sub" title="{% trans "Announcements still active, newest first" %}">{% trans "Not Expired" %}</div>
                         </div>
                         {% if perms.base.add_announcement %}
@@ -2255,10 +2259,10 @@
                         <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
                     </div>
                 </div>
-                <div class="md-info-panel">
+                <div class="md-info-panel pi-dashboard-card">
                     <div class="md-info-panel__header">
                         <div class="md-info-panel__heading">
-                            <div class="md-info-panel__title">{% trans "Birthdays & Anniversaries" %}<span id="md-birthdays-count" class="md-count-badge" hidden title="{% trans 'This month' %}">0</span></div>
+                            <div class="md-info-panel__title pi-dashboard-card-title">{% trans "Birthdays & Anniversaries" %}<span id="md-birthdays-count" class="md-count-badge" hidden title="{% trans 'This month' %}">0</span></div>
                             <div class="md-info-panel__sub" title="{% trans "Birthdays and work anniversaries this month, closest to today first" %}">{% trans "This Month" %}</div>
                         </div>
                     </div>
@@ -2266,10 +2270,10 @@
                         <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
                     </div>
                 </div>
-                <div class="md-info-panel">
+                <div class="md-info-panel pi-dashboard-card">
                     <div class="md-info-panel__header">
                         <div class="md-info-panel__heading">
-                            <div class="md-info-panel__title">{% trans "Pending Approvals" %}<span id="md-pending-count" class="md-count-badge" hidden title="{% trans 'Waiting for approval' %}">0</span></div>
+                            <div class="md-info-panel__title pi-dashboard-card-title">{% trans "Pending Approvals" %}<span id="md-pending-count" class="md-count-badge" hidden title="{% trans 'Waiting for approval' %}">0</span></div>
                             <div class="md-info-panel__sub" title="{% trans "Everything awaiting your approval, whatever dates the period filter covers" %}">{% trans "All Dates" %}</div>
                         </div>
                     </div>
@@ -2305,7 +2309,7 @@
             const subTextColor = isDark ? '#64748b' : '#94a3b8';
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
             const cardBg = isDark ? '#242424' : '#ffffff';
-            const COLORS = ['#E54F38','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
+            const COLORS = ['#4f46e5','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
             const ANIM = { enabled: true, easing: 'easeinout', speed: 700, animateGradually: { enabled: true, delay: 80 }, dynamicAnimation: { enabled: true, speed: 500 } };
             const GRID = { borderColor: gridColor, strokeDashArray: 5, padding: { left: 4, right: 4 } };
             const TOOLTIP_STYLE = { theme: isDark ? 'dark' : 'light', style: { fontSize: '12px' } };
@@ -2375,13 +2379,13 @@
                 candidate:   {% if perms.recruitment.view_candidate or request.user.is_superuser %}true{% else %}false{% endif %},
             };
 
-            const emptyHtml = (msg) => `<div class="md-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+            const emptyHtml = (msg) => `<div class="md-empty pi-dashboard-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
             const hideCard  = id => document.querySelector(`[data-chart-id="${id}"]`)?.classList.add('md-chart-card--hidden');
             const kpiCard   = (href, perm, colorClass, svg, label, value, sub, extra = '') => {
-                const body = `<div class="md-kpi-card__icon ${colorClass}">${svg}</div><div class="md-kpi-card__label">${label}</div><div class="md-kpi-card__value">${value}</div>`;
+                const body = `<div class="md-kpi-card__icon ${colorClass}">${svg}</div><div class="md-kpi-card__label">${label}</div><div class="md-kpi-card__value pi-dashboard-card-value">${value}</div>`;
                 const subHtml = `<div class="md-kpi-card__sub">${sub}</div>${extra}`;
-                if (!perm) return `<div class="md-kpi-card">${body}${subHtml}</div>`;
-                return `<div class="md-kpi-card"><a href="${href}" class="md-kpi-card__hit">${body}</a>${subHtml}</div>`;
+                if (!perm) return `<div class="md-kpi-card pi-dashboard-card">${body}${subHtml}</div>`;
+                return `<div class="md-kpi-card pi-dashboard-card"><a href="${href}" class="md-kpi-card__hit">${body}</a>${subHtml}</div>`;
             };
 
             document.getElementById('md-date').textContent = new Date().toLocaleDateString('en-US', {

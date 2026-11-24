@@ -1,4 +1,9 @@
-{% extends 'index.html' %} {% load i18n %} {% block content %} {% load static %}
+{% extends 'index.html' %} {% load i18n %} {% block content %}
+<div class="pi-time">
+
+{% include "pihrms/dashboard_styles.html" %}
+<div class="pi-dashboard pi-dashboard--legacy">
+ {% load static %}
 {% load attendancefilters %}
 {% include 'generic/components.html' %}
 <style>
@@ -248,5 +253,7 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'dashboard/attendanceChart.js' %}"></script>
+</div>
+</div>
 </div>
 {% endblock content %}

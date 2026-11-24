@@ -1,4 +1,6 @@
-{% extends 'index.html' %} {% block content %} {% load static %} {% load i18n %} {% load basefilters %} {% load horillafilters %}
+{% extends 'index.html' %} {% block content %}
+<div class="pi-time">
+ {% load static %} {% load i18n %} {% load basefilters %} {% load horillafilters %}
 {% get_company as theme_obj %}
 <style>
     .diff-cell {
@@ -379,4 +381,5 @@
     }
 
 </script>
+</div>
 {% endblock %}

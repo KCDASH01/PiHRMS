@@ -1,4 +1,6 @@
 {% extends 'index.html' %}{% block content %}
+<div class="pi-time">
+
     {% load static %}{% load i18n %}
     {% include 'attendance/attendance_account/nav.html' %}
 
@@ -35,4 +37,5 @@
     <script>
         $("[name=field]").val("month")
     </script>
+</div>
 {% endblock %}

@@ -2,6 +2,8 @@
 {% load i18n static %}
 
 {% block content %}
+<div class="pi-time">
+
     <meta name="csrf-token" content="{{ csrf_token }}">
 
     <style>
@@ -127,4 +129,5 @@
     </div>
 
     <script src="{% static 'cbv/attendance/hour_account.js' %}?v=2"></script>
+</div>
 {% endblock content %}

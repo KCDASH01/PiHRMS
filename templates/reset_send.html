@@ -5,14 +5,15 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% trans "Registration Success - OpenHRMS Dashboard" %}</title>
+        <title>{% trans "Password reset email sent" %} - {{ white_label_company_name|default:"PiHRMS" }}</title>
         <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicons/apple-touch-icon.png' %}">
         <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicons/favicon-32x32.png' %}">
         <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicons/favicon-16x16.png' %}">
 
         <link rel="stylesheet" href="{% static '/build/css/style.min.css' %}">
+        {% include "pihrms/auth_styles.html" %}
     </head>
-    <body>
+    <body class="pi-auth-page">
         <div id="main">
             {% if messages %}
                 <div class="oh-alert-container">
@@ -23,8 +24,8 @@
                     {% endfor %}
                 </div>
             {% endif %}
-            <main class="oh-onboarding">
-                <div class="oh-onboarding-card oh-onboarding-card--top-bar">
+            <main class="oh-onboarding pi-auth-stage">
+                <div class="oh-onboarding-card pi-auth-card pi-auth-status">
                     <div class="oh-onboarding-card__container oh-onboarding-card__container--wide">
                         <div class="oh-onboarding__info-container">
                             <svg
@@ -42,10 +43,9 @@
                                 <path d="m16.5 8.25-6.3 7.5-2.7-3" />
                             </svg>
                             <div class="oh-onboarding__title-container">
-                                <h1 class="oh-onboarding__title">{% trans "Forget Password Mail Send Successfully" %}</h1>
+                                <h1 class="oh-onboarding__title">{% trans "Check your email" %}</h1>
                                 <p class="oh-onboarding__content">
-                                    Your link to reset a Password is ready, check your inbox and also check spam if not
-                                    showing the inbox.
+                                    {% trans "If you do not see the password reset email in your inbox, check your spam folder." %}
                                 </p>
                                 <!-- <a href="#" class="oh-btn oh-btn--secondary">{% trans "Return home" %}</a> -->
                             </div>

@@ -1,4 +1,6 @@
-{% extends 'settings.html' %} {% load i18n %} {% block settings %} {% load static %}
+{% extends 'settings.html' %} {% load i18n %} {% block settings %}
+<div class="pi-time">
+ {% load static %}
 <meta name="csrf-token" content="{{ csrf_token }}">
 {% include "generic/components.html" %}
 <div class="oh-inner-sidebar-content">
@@ -23,4 +25,5 @@
     <div class="oh-modal__dialog" id="shiftForm"></div>
 </div>
 <script src="{% static 'cbv/deleteFunc.js' %}"></script>
+</div>
 {% endblock settings %}

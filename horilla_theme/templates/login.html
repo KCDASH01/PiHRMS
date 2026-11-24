@@ -7,6 +7,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="{% static 'horilla_theme/assets/css/tailwind.css' %}" rel="stylesheet">
+        <link rel="manifest" href="{% static 'build/manifest.json' %}">
         <title>
             {% blocktrans with company_name=white_label_company_name %}Login - {{ company_name }}
                 Dashboard{% endblocktrans %}
@@ -103,8 +104,9 @@
             };
         </script>
         <script src="{% static '/jquery/jquery.min.js' %}"></script>
+        {% include "pihrms/auth_styles.html" %}
     </head>
-    <body class="bg-[{{theme_obj.primary_200}}] font-[Inter,_sans-serif]">
+    <body class="pi-auth-page bg-[{{theme_obj.primary_200}}] font-[Inter,_sans-serif]">
         <div class="oh-alert-container">
             {% for message in messages %}
                 <div class="oh-alert oh-alert--animated {{ message.tags }}">
@@ -113,131 +115,128 @@
             {% endfor %}
         </div>
 
-        <div class="h-screen w-full flex items-center justify-center">
-            <div class="bg-white p-[50px] rounded-2xl [box-shadow:0px_0px_25px_#a1a1a1] w-[450px]">
-                <img
-                    src="{% if white_label_company.icon %}{{white_label_company.icon.url}}{% else %}{% static 'horilla_theme/assets/img/logo.svg' %}{% endif %}"
-                    alt=""
-                    class="m-auto mb-4"
-                    width="80"
-                >
-                <h1 class="text-3xl font-bold mb-2 text-center">
-                    {% trans "Welcome to" %}
-                    {{ white_label_company_name }}
-                    {% trans "HR" %}
-                </h1>
-                <p class="mb-5 text-center text-sm text-color-600">
-                    {% trans "Please login to access the dashboard." %}
-                </p>
-                <form method="post" class="oh-form-group">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="username" class="text-sm text-color-600">{% trans "Username" %}</label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value="{{ form_username }}"
-                            autocomplete="username"
-                            {% if field_errors.username %}autofocus aria-invalid="true" aria-describedby="username-error"{% elif not form_username %}autofocus{% endif %}
-                            placeholder="{% trans 'e.g. adam.luis@horilla.com' %}"
-                            class="text-color-600 w-full border {% if field_errors.username %}border-danger{% else %}border-dark-50{% endif %} rounded-md p-3 mt-1 focus-visible:outline-0 placeholder:text-[#00000041] placeholder:font-medium text-xs [transition:.3s] {% if theme_obj %} focus:border-[{{theme_obj.primary_700}}] {% else %} focus:border-primary-600 {% endif %}"
-                        >
-                        {% if field_errors.username %}
-                            <p id="username-error" role="alert" class="text-xs text-danger mt-1">{{ field_errors.username }}</p>
+        <main class="pi-auth-stage">
+            <div class="pi-auth-split">
+                {% include "pihrms/sign_in_brand.html" %}
+                <div class="pi-auth-card">
+                    <h1 class="text-3xl font-bold mb-2 text-center">
+                        {% trans "Sign In" %}
+                    </h1>
+                    <p class="mb-5 text-center text-sm text-color-600">
+                        {% trans "Please login to access the dashboard." %}
+                    </p>
+                    <form method="post" class="oh-form-group">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="username" class="text-sm text-color-600">{% trans "Username" %}</label>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                value="{{ form_username }}"
+                                autocomplete="username"
+                                {% if field_errors.username %}autofocus aria-invalid="true" aria-describedby="username-error"{% elif not form_username %}autofocus{% endif %}
+                                placeholder="{% trans 'e.g. name@example.com' %}"
+                                class="text-color-600 w-full border {% if field_errors.username %}border-danger{% else %}border-dark-50{% endif %} rounded-md p-3 mt-1 focus-visible:outline-0 placeholder:text-[#00000041] placeholder:font-medium text-xs [transition:.3s] {% if theme_obj %} focus:border-[{{theme_obj.primary_700}}] {% else %} focus:border-primary-600 {% endif %}"
+                            >
+                            {% if field_errors.username %}
+                                <p id="username-error" role="alert" class="text-xs text-danger mt-1">{{ field_errors.username }}</p>
+                            {% endif %}
+                        </div>
+                        <label for="password" class="text-sm text-color-600">{% trans "Password" %}</label>
+                        <div class="oh-password-input-container relative">
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                autocomplete="current-password"
+                                {% if field_errors.password %}aria-invalid="true" aria-describedby="password-error"{% endif %}
+                                {% if form_username and not field_errors.username %}autofocus{% endif %}
+                                placeholder="{% trans 'Enter Password' %}"
+                                class="oh-input--password text-color-600 p-3 pr-[40px] w-full border {% if field_errors.password %}border-danger{% else %}border-dark-50{% endif %} rounded-md mt-1 focus-visible:outline-0 placeholder:text-[#00000041] placeholder:font-medium text-xs [transition:.3s] {% if theme_obj %} focus:border-[{{theme_obj.primary_700}}] {% else %} focus:border-primary-600 {% endif %}"
+                            >
+                            <button
+                                type="button"
+                                class="oh-btn oh-btn--transparent oh-password-input--toggle"
+                                aria-pressed="false"
+                                aria-label="{% trans 'Password visibility' %}"
+                            >
+                                <ion-icon
+                                    class="oh-password-input__show-icon"
+                                    title="{% trans 'Show Password' %}"
+                                    name="eye-outline"
+                                ></ion-icon>
+                                <ion-icon
+                                    class="oh-password-input__hide-icon hidden"
+                                    title="{% trans 'Hide Password' %}"
+                                    name="eye-off-outline"
+                                ></ion-icon>
+                            </button>
+                        </div>
+                        {% if field_errors.password %}
+                            <p id="password-error" role="alert" class="text-xs text-danger mt-1">{{ field_errors.password }}</p>
                         {% endif %}
-                    </div>
-                    <label for="password" class="text-sm text-color-600">{% trans "Password" %}</label>
-                    <div class="oh-password-input-container relative">
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            autocomplete="current-password"
-                            {% if field_errors.password %}aria-invalid="true" aria-describedby="password-error"{% endif %}
-                            {% if form_username and not field_errors.username %}autofocus{% endif %}
-                            placeholder="{% trans 'Enter Password' %}"
-                            class="oh-input--password text-color-600 p-3 pr-[40px] w-full border {% if field_errors.password %}border-danger{% else %}border-dark-50{% endif %} rounded-md mt-1 focus-visible:outline-0 placeholder:text-[#00000041] placeholder:font-medium text-xs [transition:.3s] {% if theme_obj %} focus:border-[{{theme_obj.primary_700}}] {% else %} focus:border-primary-600 {% endif %}"
+                        {% if not initialize_database %}
+                            <div class="flex justify-end">
+                                <a
+                                    href="{% url 'forgot-password' %}"
+                                    class="text-sm text-right font-medium text-[red] mb-3 mt-2 cursor-pointer"
+                                >
+                                    {% trans "Forgot Password ?" %}
+                                </a>
+                            </div>
+                        {% endif %}
+                        <button
+                            type="submit"
+                            class="p-3 mt-3 bg-brand-600 hover:bg-brand-800 w-full flex gap-3 justify-center rounded-md text-[white] [transition:.3s]"
                         >
-                        <span
-                            type="button"
-                            class="oh-btn oh-btn--transparent oh-password-input--toggle"
+                            <img src='{% static "horilla_theme/assets/icons/sign.svg" %}' alt=""> {% trans "Sign In" %}
+                        </button>
+                    </form>
+                    {% if initialize_database %}
+                        <div>
+                            <div class="d-flex gap-2">
+                                <a
+                                    href="{% url 'initialize-database' %}"
+                                    class="oh-btn oh-onboarding-card__button mt-4 oh-btn--shadow w-full mb-4"
+                                    role="button"
+                                    style="background-color: rgba(229, 79, 56, 0.1); color: hsl(8, 77%, 56%)"
+                                >
+                                    {% trans "Initialize Database" %}
+                                    <ion-icon
+                                        class="ms-2"
+                                        name="arrow-forward-outline"
+                                    ></ion-icon>
+                                </a>
+                                <a
+                                    onclick="$('#dataLoadAuthentication').toggleClass('oh-modal--show')"
+                                    class="oh-btn oh-onboarding-card__button mt-4 oh-btn--shadow w-full mb-4"
+                                    style="background-color: #31b46e1f; color: #1fad61"
+                                    role="button"
+                                >
+                                    {% trans "Load Demo Data" %}
+                                    <ion-icon
+                                        class="ms-2"
+                                        name="arrow-forward-outline"
+                                    ></ion-icon>
+                                </a>
+                            </div>
+                        </div>
+                        <div
+                            class="oh-modal"
+                            id="dataLoadAuthentication"
+                            role="dialog"
+                            aria-labelledby="dataLoadAuthenticationLabel"
+                            style="backdrop-filter: blur(8px)"
                         >
-                            <ion-icon
-                                class="oh-password-input__show-icon"
-                                title="{% trans 'Show Password' %}"
-                                name="eye-outline"
-                            ></ion-icon>
-                            <ion-icon
-                                class="oh-password-input__hide-icon hidden"
-                                title="{% trans 'Hide Password' %}"
-                                name="eye-off-outline"
-                            ></ion-icon>
-                        </span>
-                    </div>
-                    {% if field_errors.password %}
-                        <p id="password-error" role="alert" class="text-xs text-danger mt-1">{{ field_errors.password }}</p>
-                    {% endif %}
-                    {% if not initialize_database %}
-                        <div class="flex justify-end">
-                            <a
-                                href="{% url 'forgot-password' %}"
-                                class="text-sm text-right font-medium text-[red] mb-3 mt-2 cursor-pointer"
-                            >
-                                {% trans "Forgot Password ?" %}
-                            </a>
+                            <div class="oh-modal__dialog">
+                                {% include "demo_database/auth_load_data.html" %}
+                            </div>
                         </div>
                     {% endif %}
-                    <button
-                        type="submit"
-                        class="p-3 mt-3 bg-brand-600 hover:bg-brand-800 w-full flex gap-3 justify-center rounded-md text-[white] [transition:.3s]"
-                    >
-                        <img src='{% static "horilla_theme/assets/icons/sign.svg" %}' alt=""> {% trans "Sign In" %}
-                    </button>
-                </form>
-                {% if initialize_database %}
-                    <div>
-                        <div class="d-flex gap-2">
-                            <a
-                                href="{% url 'initialize-database' %}"
-                                class="oh-btn oh-onboarding-card__button mt-4 oh-btn--shadow w-full mb-4"
-                                role="button"
-                                style="background-color: rgba(229, 79, 56, 0.1); color: hsl(8, 77%, 56%)"
-                            >
-                                {% trans "Initialize Database" %}
-                                <ion-icon
-                                    class="ms-2"
-                                    name="arrow-forward-outline"
-                                ></ion-icon>
-                            </a>
-                            <a
-                                onclick="$('#dataLoadAuthentication').toggleClass('oh-modal--show')"
-                                class="oh-btn oh-onboarding-card__button mt-4 oh-btn--shadow w-full mb-4"
-                                style="background-color: #31b46e1f; color: #1fad61"
-                                role="button"
-                            >
-                                {% trans "Load Demo Data" %}
-                                <ion-icon
-                                    class="ms-2"
-                                    name="arrow-forward-outline"
-                                ></ion-icon>
-                            </a>
-                        </div>
-                    </div>
-                    <div
-                        class="oh-modal"
-                        id="dataLoadAuthentication"
-                        role="dialog"
-                        aria-labelledby="dataLoadAuthenticationLabel"
-                        style="backdrop-filter: blur(8px)"
-                    >
-                        <div class="oh-modal__dialog">
-                            {% include "demo_database/auth_load_data.html" %}
-                        </div>
-                    </div>
-                {% endif %}
+                </div>
             </div>
-        </div>
+        </main>
 
         <script type="module" src="{% static 'images/ionicons/ui_icons/ionicons/ionicons.esm.js' %}"></script>
         <script>
@@ -256,10 +255,12 @@
 
                     if (passwordInput.type === 'password') {
                         passwordInput.type = 'text';
+                        this.setAttribute("aria-pressed", "true");
                         showIcon.classList.add('hidden', 'd-none');
                         hideIcon.classList.remove('hidden', 'd-none');
                     } else {
                         passwordInput.type = 'password';
+                        this.setAttribute("aria-pressed", "false");
                         showIcon.classList.remove('hidden', 'd-none');
                         hideIcon.classList.add('hidden', 'd-none');
                     }

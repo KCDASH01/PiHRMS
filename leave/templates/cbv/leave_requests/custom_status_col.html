@@ -9,7 +9,7 @@
         {{multiple_approvals.approved|length}} / {{multiple_approvals.managers|length}} {% trans "Approved" %}
       </div>
     {% else %}
-    <div>{{ instance.get_status_display }}</div>
+    <div class="pi-time-status">{{ instance.get_status_display }}</div>
 
     {% endif %}
 {% endwith %}

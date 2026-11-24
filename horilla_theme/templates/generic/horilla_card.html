@@ -19,6 +19,14 @@
         {% include "generic/filter_tags.html" %}
     {% endif %}
 
+    {% if custom_body_template == "cbv/employees_view/card_body.html" and queryset.paginator %}
+        {% with result_count=queryset.paginator.count|default:0 %}
+            <p class="pi-employee-card-count">
+                {% blocktrans count total=result_count %}{{ total }} employee{% plural %}{{ total }} employees{% endblocktrans %}
+            </p>
+        {% endwith %}
+    {% endif %}
+
     {% if groups %}
         {# ── Group-by accordion view — matches recruitment pipeline / skill-zone style ── #}
         <div class="oh-card">
@@ -142,9 +150,17 @@
                                                         class="absolute inline-block right-0 -top-1"
                                                         onclick="event.stopPropagation()"
                                                     >
+                                                        {% if custom_body_template == "cbv/employees_view/card_body.html" %}
+                                                            {% if actions %}
+                                                                <button type="button" class="cursor-pointer pi-employee-card-menu" aria-label="{% trans 'Employee actions' %}">
+                                                                    <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                                                                </button>
+                                                            {% endif %}
+                                                        {% else %}
                                                         <div class="cursor-pointer dropdown-toggle w-[20px]">
                                                             <i class="fa-solid fa-ellipsis-vertical text-black ms-[10px]"></i>
                                                         </div>
+                                                        {% endif %}
 
                                                         {% if actions %}
                                                             <div class="dropdown-menu absolute right-0 min-w-[100px] bg-white rounded-lg shadow-card py-2 hidden z-50 transition-all duration-200">
@@ -154,6 +170,10 @@
                                                                             <li>
                                                                                 <p class="w-full text-left px-3 py-1 hover:text-primary-600 transition duration-300">
                                                                                     <a
+                                                                                        {% if custom_body_template == "cbv/employees_view/card_body.html" and "hx-" in action.attrs %}
+                                                                                            role="button" tabindex="0"
+                                                                                            onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
+                                                                                        {% endif %}
                                                                                         {{action.attrs|format:instance|safe}}
                                                                                     >{{ instance|getattribute:action.action|default:action.action }}</a>
                                                                                 </p>
@@ -258,9 +278,17 @@
                                             class="absolute inline-block right-0 -top-1"
                                             onclick="event.stopPropagation()"
                                         >
+                                            {% if custom_body_template == "cbv/employees_view/card_body.html" %}
+                                                {% if actions %}
+                                                    <button type="button" class="cursor-pointer pi-employee-card-menu" aria-label="{% trans 'Employee actions' %}">
+                                                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                                                    </button>
+                                                {% endif %}
+                                            {% else %}
                                             <div class="cursor-pointer dropdown-toggle w-[20px]">
                                                 <i class="fa-solid fa-ellipsis-vertical text-black ms-[10px]"></i>
                                             </div>
+                                            {% endif %}
 
                                             {% if actions %}
                                                 <div class="dropdown-menu absolute right-0 min-w-[100px] bg-white rounded-lg shadow-card py-2 hidden z-50 transition-all duration-200">
@@ -270,6 +298,10 @@
                                                                 <li>
                                                                     <p class="w-full text-left px-3 py-1 hover:text-primary-600 transition duration-300">
                                                                         <a
+                                                                            {% if custom_body_template == "cbv/employees_view/card_body.html" and "hx-" in action.attrs %}
+                                                                                role="button" tabindex="0"
+                                                                                onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
+                                                                            {% endif %}
                                                                             {{action.attrs|format:instance|safe}}
                                                                         >{{ instance|getattribute:action.action|default:action.action }}</a>
                                                                     </p>
@@ -361,7 +393,7 @@
 </div>
 
 <script>
-    $(".dropdown-toggle").on("click", function () {
+    $(".dropdown-toggle, .pi-employee-card-menu").on("click", function () {
         const dropdownMenu = $(this).next(".dropdown-menu");
         const isOpen = dropdownMenu.is(":visible");
 

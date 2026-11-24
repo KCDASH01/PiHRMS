@@ -1,4 +1,6 @@
-{% extends 'index.html' %} {% block content %} {% load static %} {% load i18n %}
+{% extends 'index.html' %} {% block content %}
+<div class="pi-time">
+ {% load static %} {% load i18n %}
 <!-- start of nav bar -->
 <section class="oh-wrapper oh-main__topbar" x-data="{searchShow: false}">
   <!-- start of title -->
@@ -305,4 +307,5 @@
   });
 </script>
 
+</div>
 {% endblock %}

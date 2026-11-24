@@ -1,6 +1,9 @@
 {% extends 'settings.html' %}
 {% load i18n %}
 {% block settings %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-organization">
+
     {% load static %}
     {% include "generic/components.html" %}
     <meta name="csrf-token" content="{{ csrf_token }}">
@@ -40,4 +43,5 @@
         {% endif %} {% endcomment %}
         {% endif %}
     </div>
+</div>
 {% endblock settings %}

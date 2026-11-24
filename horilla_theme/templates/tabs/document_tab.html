@@ -18,7 +18,7 @@
 {% if documents %}
     <div class="p-6">
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div class="hidden md:grid grid-cols-[60px_1fr_120px_120px_180px] gap-4 px-6 py-4 bg-primary-50 border-b border-primary-300 text-xs font-semibold uppercase tracking-wider text-dark-400 items-center">
+            <div class="pi-employee-document-head hidden md:grid grid-cols-[60px_1fr_120px_120px_180px] gap-4 px-6 py-4 bg-primary-50 border-b border-primary-300 text-xs font-semibold uppercase tracking-wider text-dark-400 items-center">
                 <div></div>
                 <div>{% trans "Document" %}</div>
                 <div>{% trans "Status" %}</div>
@@ -29,7 +29,7 @@
             {% for document in documents %}
                 <div
                     class="
-                        grid md:grid-cols-[60px_1fr_120px_120px_180px] gap-4 px-6 py-4 border-b border-primary-200 items-center hover:bg-primary-50 cursor-pointer
+                        pi-employee-document-row grid md:grid-cols-[60px_1fr_120px_120px_180px] gap-4 px-6 py-4 border-b border-primary-200 items-center hover:bg-primary-50 cursor-pointer
                         {% if document.document %}
                         {% if document.status == "approved" %}row-status--yellow
                         {% elif document.status == 'rejected' %}row-status--red

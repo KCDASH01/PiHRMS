@@ -7,7 +7,7 @@
 {# #{{ shell_target_id }} -- which always starts with one child, the #}
 {# ".animated-background" skeleton below, even on a genuine first load. #}
 <div hx-get="{% url nav_url_name pk=emp_id %}" hx-trigger="load[this.children.length===0]"></div>
-<div id="{{ shell_target_id }}" class="oh-wrapper">
+<div id="{{ shell_target_id }}" class="oh-wrapper pi-time">
     <div class="animated-background"></div>
 </div>
 {# Row Approve/Reject handlers (workTypeRequestRowApprove, shiftRequestRowApprove, ...) #}

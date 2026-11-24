@@ -2,6 +2,8 @@
 {% load i18n static %}
 
 {% block settings %}
+<div class="pi-time">
+
     <div id="ohMessages"></div>
 
     {% include "generic/components.html" %}
@@ -40,4 +42,5 @@
         hx-post="{% url 'restrict-days-bulk-delete' %}?{{ pd }}"
         hx-target="#restrictday"
     ></span>
+</div>
 {% endblock settings %}

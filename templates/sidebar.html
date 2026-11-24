@@ -68,17 +68,11 @@
     <div class="oh-sidebar__company" style="padding: 14px">
         {% if request.session.selected_company_instance %}
             <span class="mr-3">
-                {% if not request.session.selected_company_instance %}
-                    <img
-                        src="https://ui-avatars.com/api/?name=C&background=random"
-                        style="width: 34px; border-radius: 3px"
-                    >
-                {% else %}
-                    <img
-                        src="{% if request.session.selected_company_instance.icon and request.session.selected_company_instance.icon != '/404/' %}{{request.session.selected_company_instance.icon}}{% else %}https://ui-avatars.com/api/?name=C&background=random{% endif %}"
-                        style="width: 34px; border-radius: 3px"
-                    >
-                {% endif %}
+                <img
+                    src="{% if request.session.selected_company_instance.icon and request.session.selected_company_instance.icon != '/404/' %}{{ request.session.selected_company_instance.icon }}{% else %}{% static 'images/brand/pihrms-mark.svg' %}{% endif %}"
+                    alt=""
+                    style="width: 34px; border-radius: 3px"
+                >
             </span>
             <div class="oh-sidebar__company-details">
                 <span
@@ -91,17 +85,11 @@
             </div>
         {% else %}
             <span class="mr-3">
-                {% if request.user.employee_get.employee_work_info.company_id.icon == None %}
-                    <img
-                        src="https://ui-avatars.com/api/?name=C&background=random"
-                        style="width: 34px; border-radius: 3px"
-                    >
-                {% else %}
-                    <img
-                        src="{{request.user.employee_get.employee_work_info.company_id.icon.url}}"
-                        style="width: 34px; border-radius: 3px"
-                    >
-                {% endif %}
+                <img
+                    src="{% if request.user.employee_get.employee_work_info.company_id.icon %}{{ request.user.employee_get.employee_work_info.company_id.icon.url }}{% else %}{% static 'images/brand/pihrms-mark.svg' %}{% endif %}"
+                    alt=""
+                    style="width: 34px; border-radius: 3px"
+                >
             </span>
             <div class="oh-sidebar__company-details">
                 <span

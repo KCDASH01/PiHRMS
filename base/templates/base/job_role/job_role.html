@@ -1,6 +1,9 @@
 {% extends 'settings.html' %}
 {% load i18n %}
 {% block settings %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-organization">
+
     {% load static %}
     {% include "generic/components.html" %}
     <style>
@@ -54,4 +57,5 @@
     <div class="oh-modal" id="jobRoleModal" role="dialog" aria-labelledby="jobRoleModal" aria-hidden="true">
         <div class="oh-modal__dialog" id="jobRoleForm"></div>
     </div>
+</div>
 {% endblock settings %}

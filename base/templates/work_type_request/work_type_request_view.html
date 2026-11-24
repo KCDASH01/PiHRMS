@@ -1,4 +1,6 @@
-{% extends "index.html" %} {% load i18n %} {% block content %} {% include 'work_type_request/work_type_request_nav.html' %}
+{% extends "index.html" %} {% load i18n %} {% block content %}
+<div class="pi-time">
+ {% include 'work_type_request/work_type_request_nav.html' %}
 <div
     class="oh-checkpoint-badge mb-2"
     id="selectedWorktypes"
@@ -98,4 +100,5 @@
 	  $(elem).siblings(".add_more_submit").click();
   }
 </script>
+</div>
 {% endblock content %}

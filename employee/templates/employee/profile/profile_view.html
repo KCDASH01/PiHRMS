@@ -1,6 +1,9 @@
 {% extends 'index.html' %}
 {% load i18n static basefilters horillafilters accessibility_filters %}
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-profile">
+
     <style>
         .resign-status {
             margin-bottom: 6px;
@@ -777,4 +780,5 @@
         $('#reloadMessagesButton').click();
         {% endif %}
     </script>
+</div>
 {% endblock content %}

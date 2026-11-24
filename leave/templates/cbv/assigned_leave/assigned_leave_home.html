@@ -2,6 +2,8 @@
 {% load static %}
 {% load i18n %}
 {% block content %}
+<div class="pi-time">
+
     <meta name="csrf-token" content="{{ csrf_token }}">
     <div hx-get="{% url 'assigned-leave-nav' %}" hx-trigger="load"></div>
 
@@ -109,4 +111,5 @@
             $('.oh-modal--show').removeClass('oh-modal--show');
         });
     </script>
+</div>
 {% endblock content %}

@@ -1,5 +1,8 @@
 {% extends 'index.html' %}
 {% block content %}
+{% include "pihrms/dashboard_styles.html" %}
+<div class="pi-dashboard pi-dashboard--legacy">
+
 {% load mathfilters %}
 {% load static %}
 {% load i18n %}
@@ -153,4 +156,5 @@
 <script src="{% static 'dashboard/employeeChart.js' %}"></script>
 
 
+</div>
 {% endblock content %}

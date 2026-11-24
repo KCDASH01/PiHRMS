@@ -3,6 +3,9 @@
 {% get_company as theme_obj %}
 
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-settings">
+
     <style>
         .oh-tabs__tab {
             display: flex;
@@ -190,4 +193,5 @@
             runWhenHtmxReady(restoreEmployeeSettingsTab);
         })();
     </script>
+</div>
 {% endblock content %}

@@ -1,5 +1,8 @@
 {% extends 'index.html' %}
 {% block content %}
+{% include "pihrms/dashboard_styles.html" %}
+<div class="pi-dashboard pi-dashboard--legacy">
+
     {% load static i18n horillafilters %}
 
     <div class="oh-wrapper" id="offboardingDashboard">
@@ -174,4 +177,5 @@
         </div>
     </div>
     <script src="{% static 'offboarding/dashboard.js' %}"></script>
+</div>
 {% endblock content %}

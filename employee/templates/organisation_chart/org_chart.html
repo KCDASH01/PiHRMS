@@ -1,9 +1,12 @@
 {% extends 'index.html' %}
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-organization">
+
     {% load i18n %}
 
     <main :class="sidebarOpen ? 'oh-main__sidebar-visible' : ''">
-        <section class="oh-wrapper oh-main__topbar" x-data="{searchShow: false}">
+        <section class="oh-wrapper oh-main__topbar pi-employee-toolbar" x-data="{searchShow: false}">
             <div class="oh-main__titlebar oh-main__titlebar--left">
                 <div style="display: flow">
                     <h1 class="oh-main__titlebar-title fw-bold">{% trans "Organization Chart" %}</h1>
@@ -55,4 +58,5 @@
             htmx.trigger('#mangerSelect', 'change');
         })
     </script>
+</div>
 {% endblock %}

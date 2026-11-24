@@ -30,9 +30,10 @@
         <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/global.css' %}">
         <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/v1_styles.css' %}">
         <link rel="manifest" href="{% static 'build/manifest.json' %}">
+        {% include "pihrms/auth_styles.html" %}
     </head>
 
-    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' style="font-family: Inter, sans-serif;">
+    <body class="pi-auth-page" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' style="font-family: Inter, sans-serif;">
         <style>
             .select2-selection.select2-selection--multiple {
                 height: 46px !important;
@@ -80,10 +81,10 @@
                     </div>
                 {% endfor %}
             </div>
-            <main class="oh-auth">
-                <div class="oh-onboarding-card" style="max-height: 790px; max-width: 975px" id="ohAuthCard">
+            <main class="oh-auth pi-auth-stage">
+                <div class="oh-onboarding-card pi-auth-card" style="max-height: 790px; max-width: 975px" id="ohAuthCard">
                     <div class="oh-onboarding-card__header">
-                        <span class="oh-onboarding-card__company-name">{% trans "Horilla HRMS" %}</span>
+                        <span class="oh-onboarding-card__company-name">{% trans "PiHRMS" %}</span>
                         <ul class="oh-onboarding-card__steps">
                             <li class="oh-onboarding-card__step oh-onboarding-card__step--active">
                                 <div class="oh-onboarding-card__count">1</div>
@@ -111,7 +112,7 @@
                         {% trans "Database Authentication" %}
                     </h1>
                     <p class="text-muted text-center">
-                        {% trans "Authenticate with your password to initialize the Horilla HRMS database." %}
+                        {% trans "Authenticate with your password to initialize the PiHRMS database." %}
                     </p>
                     <form hx-post="{% url 'initialize-database' %}" hx-target="#ohAuthCard" class="oh-form-group">
                         {% csrf_token %}
@@ -157,7 +158,7 @@
                 </div>
                 <img
                     src="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'images/ui/auth-logo.png' %}{% endif %}"
-                    alt="{% trans 'Horilla' %}"
+                    alt="{% if white_label_company.icon %}{{ white_label_company_name }}{% else %}PiHRMS{% endif %}"
                 >
             </main>
         </div>

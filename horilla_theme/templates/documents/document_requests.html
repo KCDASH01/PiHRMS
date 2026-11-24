@@ -1,5 +1,8 @@
 {% extends "index.html" %}
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-documents">
+
     {% load static %}
     {% load i18n %}
     {% load basefilters %}
@@ -15,7 +18,7 @@
     </style>
 
     <div
-        hx-get="{% url 'document-request-nav-cbv' %}"
+        hx-get="{% url 'document-request-nav-cbv' %}" class="pi-employee-documents-nav pi-employee-toolbar"
         hx-trigger="load"
         style="position: sticky; top: 75px; z-index: 30; background: #fff;"
     ></div>
@@ -33,4 +36,5 @@
     >
         <div class="oh-modal__dialog" id="viewFile"></div>
     </div>
+</div>
 {% endblock %}

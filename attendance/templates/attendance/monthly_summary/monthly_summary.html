@@ -1,6 +1,8 @@
 {% extends 'index.html' %}
 {% load i18n %}
 {% block content %}
+<div class="pi-time">
+
 {% include 'generic/modern_filter_panel.html' %}
 
 <style>
@@ -1372,4 +1374,5 @@ one has to bring it.
 {% endcomment %}
 {% include "generic/components.html" %}
 {% include "attendance/monthly_summary/_regularise_opener.html" %}
+</div>
 {% endblock content %}

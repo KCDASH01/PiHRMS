@@ -24,16 +24,17 @@
             href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'favicons/favicon-16x16.png' %}{% endif %}"
         >
         <link rel="stylesheet" href='{% static "/build/css/style.min.css" %}'>
+        {% include "pihrms/auth_styles.html" %}
     </head>
 
-    <body>
+    <body class="pi-auth-page">
         <div class="oh-wrapper-main">
             <div id="sidebar"></div>
             <div id="main">
                 <!-- Navigation -->
                 <div id="mainNav"></div>
                 <!-- End of Navigation -->
-                <main :class="sidebarOpen ? 'oh-main__sidebar-visible' : ''">
+                <main class="pi-auth-stage pi-auth-error-layout" :class="sidebarOpen ? 'oh-main__sidebar-visible' : ''">
                     <div class="oh-wrapper">
                         <div class="oh-404">
                             <img

@@ -1,5 +1,8 @@
 {% extends "index.html" %}
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee">
+
 {% load i18n %}{% load static %}
 
 <style>
@@ -256,4 +259,5 @@
     })();
 </script>
 
+</div>
 {% endblock content %}

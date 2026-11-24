@@ -1,5 +1,7 @@
 {% extends 'index.html' %}
 {% block content %}
+<div class="pi-time">
+
     {% load static %}
     {% load i18n %}
     {% if messages %}
@@ -109,4 +111,5 @@
         <div id="leaveTypes">{% include 'leave/leave_type/leave_types.html' %}</div>
     </div>
     <script src="{% static '/base/filter.js' %}"></script>
+</div>
 {% endblock %}

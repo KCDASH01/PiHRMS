@@ -226,7 +226,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% trans "Horilla" %}</title>
+        <title>{{ white_label_company_name|default:"PiHRMS" }}</title>
         <link
             rel="icon"
             type="image/png"
@@ -239,9 +239,10 @@
             sizes="16x16"
             href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'favicons/favicon-16x16.png' %}{% endif %}"
         >
+        {% include "pihrms/auth_styles.html" %}
     </head>
 
-    <body>
+    <body class="pi-auth-page">
         {% if messages %}
             <div class="oh-wrapper">
                 {% for message in messages %}
@@ -253,13 +254,14 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <section class="hr-error_container">
+        <section class="hr-error_container pi-auth-stage pi-auth-error-layout">
             <div class="hr-error">
                 <div class="hr-error_img hr-error_bg">
                     <img src='{% static "/images/ui/404_error_image.png" %}'>
                 </div>
                 <div>
-                    <h1 class="hr-404">404</h1>
+                    <p class="hr-404">404</p>
+                    <h1 class="pi-auth-error-title">{% trans "Page Not Found" %}</h1>
                     <p class="hr-error_msg">{% trans "Page not found!" %}</p>
                     <p>{% trans "Oops! The page you are looking for could not be found." %}</p>
                     <a href="/" class="hr-error_btn"><ion-icon

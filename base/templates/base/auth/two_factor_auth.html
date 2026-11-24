@@ -26,13 +26,14 @@
         >
         <link rel="stylesheet" href="{% static '/build/css/style.min.css' %}">
         <link rel="manifest" href="{% static 'build/manifest.json' %}">
+        {% include "pihrms/auth_styles.html" %}
     </head>
     <style>
         .oh-opacity-0 {
             opacity: 0;
         }
     </style>
-    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <body class="pi-auth-page" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
         <div id="main">
             <div class="oh-alert-container">
                 {% for message in messages %}
@@ -41,9 +42,9 @@
                     </div>
                 {% endfor %}
             </div>
-            <main class="oh-auth">
+            <main class="oh-auth pi-auth-stage">
                 <div
-                    class="oh-onboarding-card"
+                    class="oh-onboarding-card pi-auth-card"
                     style="max-height: 790px; max-width: 975px"
                     id="ohAuthCard"
                 >

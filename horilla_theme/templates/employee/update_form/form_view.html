@@ -1,6 +1,9 @@
 {% extends 'index.html' %}
 {% load i18n horillafilters %}
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-edit">
+
 {% get_company as theme_obj %}
 
 <style>
@@ -146,5 +149,6 @@
         </script>
     </div> {% endcomment %}
     {% include "employee/update_form/form_view_fragment.html" %}
+</div>
 </div>
 {% endblock content %}

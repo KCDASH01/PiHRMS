@@ -2,6 +2,9 @@
 {% load static %}
 {% load i18n %}
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-directory">
+
     {% include 'employee_nav.html' %}
     <div class="oh-wrapper">
         <div
@@ -57,4 +60,5 @@
         </div>
     </div>
     <script src="{% static 'employee/actions.js' %}"></script>
+</div>
 {% endblock %}

@@ -2,6 +2,8 @@
 {% load i18n static %}
 
 {% block content %}
+<div class="pi-time">
+
 
 	<div hx-get="{% url 'nav-restricted-days' %}" hx-trigger="load"></div>
 
@@ -31,4 +33,5 @@
 		hx-target="#restrictday"
 	></span>
 
+</div>
 {% endblock %}

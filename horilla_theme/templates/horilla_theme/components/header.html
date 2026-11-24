@@ -24,16 +24,32 @@
     }
 </style>
 
-<div id="mainHeader" class="oh-main-header flex justify-between items-center bg-white py-3 px-5 border-b border-b-dark-50 fixed z-40">
-    <div id="breadcrumbs-container">
-        {% if breadcrumbs %}
-            {% include "base/navbar_components/breadcrumbs_view.html" %}
-        {% endif %}
+<div id="mainHeader" class="oh-main-header flex justify-between items-center bg-white py-3 px-5 border-b border-b-dark-50 fixed z-40" role="banner">
+    <div class="pi-header-context">
+        <button
+            id="piSidebarToggle"
+            class="pi-sidebar-toggle"
+            type="button"
+            aria-label="{% trans 'Open navigation' %}"
+            aria-controls="sidebar"
+            aria-haspopup="dialog"
+            aria-expanded="false"
+        >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+        <div id="breadcrumbs-container" role="navigation" aria-label="{% trans 'Breadcrumb' %}">
+            {% if breadcrumbs %}
+                {% include "base/navbar_components/breadcrumbs_view.html" %}
+            {% endif %}
+        </div>
+        <span class="pi-header-fallback">{{ white_label_company_name }}</span>
     </div>
 
-    <div class="flex items-center gap-8">
+    <div class="pi-header-actions flex items-center gap-8">
         <!-- Action Icons -->
-        <div class="flex items-center gap-2">
+        <div class="pi-header-tools flex items-center gap-2">
             {% if "attendance"|app_installed %}
                 <div id="attendance-activity-container">
                     {% include "attendance/components/in_out_component.html" %}
@@ -41,19 +57,20 @@
             {% endif %}
             <button
                 id="themeToggleButton"
-                class="md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 flex items-center justify-center"
+                type="button"
+                aria-label="{% trans 'Toggle theme' %}"
+                class="pi-header-action md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 flex items-center justify-center"
             >
-                <a href="#" aria-label="{% trans 'Toggle theme' %}" onclick="return false">
-                    {% if request.session.theme == "dark" %}
-                        <i class="fa-solid fa-lightbulb transition duration-300 group-hover:text-white"></i>
-                    {% else %}
-                        <i class="fa-solid fa-moon transition duration-300 group-hover:text-white"></i>
-                    {% endif %}
-                </a>
+                {% if request.session.theme == "dark" %}
+                    <i class="fa-solid fa-lightbulb transition duration-300 group-hover:text-white" aria-hidden="true"></i>
+                {% else %}
+                    <i class="fa-solid fa-moon transition duration-300 group-hover:text-white" aria-hidden="true"></i>
+                {% endif %}
             </button>
             {% if show_section %}
-                <button class="md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 flex items-center justify-center">
                     <a
+                        class="pi-header-action md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 flex items-center justify-center"
+                        aria-label="{% trans 'System preferences' %}"
                         href="{% url 'system-preferences-view' %}"
                         hx-get="{% url 'system-preferences-view' %}"
                         hx-headers='{"HX-Sidebar-Nav": "true"}'
@@ -62,9 +79,8 @@
                         hx-swap="innerHTML show:window:top"
                         hx-push-url="true"
                     >
-                        <i class="fas fa-cog transition duration-300 group-hover:text-white"></i>
+                        <i class="fas fa-cog transition duration-300 group-hover:text-white" aria-hidden="true"></i>
                     </a>
-                </button>
             {% endif %}
             {% if tour_launcher_enabled %}
             <div class="relative dropdown-wrapper">
@@ -73,7 +89,7 @@
                     type="button"
                     title="{% trans 'Take a tour' %}"
                     onclick="if(window.horillaTour){window.horillaTour.toggle();}"
-                    class="hidden md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 relative"
+                    class="pi-header-action hidden md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 relative"
                 >
                     <i class="fas fa-circle-question transition duration-300 group-hover:text-white"></i>
                     {% if tour_has_pending %}
@@ -84,7 +100,9 @@
             {% endif %}
             <div class="relative dropdown-wrapper">
                 <button
-                    class="hidden md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 relative"
+                    type="button"
+                    aria-label="{% trans 'Notifications' %}"
+                    class="pi-header-action hidden md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 relative"
                     hx-get="{% url 'notifications' %}"
                     hx-target="#notificationContainer"
                     hx-trigger="load"
@@ -137,7 +155,7 @@
 
             {% if show_language_switcher %}
                 <div class="relative dropdown-wrapper">
-                    <button class="hidden md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300">
+                    <button type="button" aria-label="{% trans 'Language' %}" class="pi-header-action hidden md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300">
                         <i class="fas fa-globe transition duration-300 group-hover:text-white"></i>
                     </button>
                     {% include "base/navbar_components/language_settings.html" %}
@@ -146,7 +164,7 @@
 
             {% if show_company_switcher %}
                 <div class="relative dropdown-wrapper">
-                    <button class="hidden md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300">
+                    <button type="button" aria-label="{% trans 'Switch company' %}" class="pi-header-action hidden md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300">
                         <i class="fa-solid fa-building transition duration-300 group-hover:text-white"></i>
                     </button>
                     {% include "base/navbar_components/company_selection.html" %}
@@ -154,7 +172,7 @@
             {% endif %}
         </div>
 
-        <div class="relative dropdown-wrapper">
+        <div class="pi-header-profile relative dropdown-wrapper">
             {% include "base/navbar_components/profile_section.html" %}
         </div>
     </div>

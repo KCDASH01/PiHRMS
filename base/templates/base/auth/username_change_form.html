@@ -17,8 +17,9 @@
         cursor: not-allowed;
     }
 </style>
-<main class="oh-auth">
-    <div class="oh-auth-card">
+{% include "pihrms/auth_styles.html" %}
+<main class="oh-auth pi-account">
+    <div class="oh-auth-card pi-auth-card">
         <h1 class="oh-onboarding-card__title oh-onboarding-card__title--h2 text-center my-3">
             {% trans "Change Username" %}
         </h1>
@@ -46,7 +47,7 @@
                 <label class="oh-label" for="confirmPassword">{% trans "Password" %}</label>
                 <div class="oh-password-input-container">
                     {{ form.password }}
-                    <button class="oh-btn oh-btn--transparent oh-password-input--toggle">
+                    <button type="button" aria-label="{% trans 'Password visibility' %}" class="oh-btn oh-btn--transparent oh-password-input--toggle">
                         <ion-icon
                             class="oh-passowrd-input__show-icon"
                             title="{% trans 'Show Password' %}"

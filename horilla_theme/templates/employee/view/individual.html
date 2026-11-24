@@ -3,6 +3,9 @@
 {% load i18n static basefilters horillafilters %}
 
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-profile">
+
     <style>
         .emp-detail-shell {
             background:
@@ -281,4 +284,5 @@
         $('#reloadMessagesButton').click();
         {% endif %}
     </script>
+</div>
 {% endblock content %}

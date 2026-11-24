@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --rd-indigo: var(--primary-600, #E54F38);
+            --rd-indigo: var(--pi-primary, #4f46e5);
             --rd-green: #22c55e;
             --rd-amber: #f59e0b;
             --rd-red: #ef4444;
@@ -186,7 +186,7 @@
             color: #6b21a8;
         }
         .rd-badge--primary {
-            background: var(--primary-600, #E54F38);
+            background: var(--primary-600, #4f46e5);
             color: #ffffff;
         }
         .dark .rd-badge--green {
@@ -377,7 +377,7 @@
         .rd-info-panel__subtitle { font-size: 11px; opacity: 0.5; margin-top: 2px; }
         .rd-panel__link {
             flex-shrink: 0;
-            color: var(--primary-600, #E54F38);
+            color: var(--primary-600, #4f46e5);
             font-weight: 700;
             font-size: 11px;
             text-decoration: none;
@@ -390,14 +390,14 @@
             margin-left: auto;
             padding: 6px 10px;
             border-radius: 8px;
-            background: color-mix(in srgb, var(--primary-600, #E54F38) 12%, transparent);
-            color: var(--primary-600, #E54F38);
+            background: color-mix(in srgb, var(--primary-600, #4f46e5) 12%, transparent);
+            color: var(--primary-600, #4f46e5);
             font-weight: 700;
             font-size: 11px;
             white-space: nowrap;
         }
         .dark .rd-interview-item__when {
-            background: color-mix(in srgb, var(--primary-600, #E54F38) 25%, transparent);
+            background: color-mix(in srgb, var(--primary-600, #4f46e5) 25%, transparent);
             color: var(--primary-300, #fcedeb);
         }
 
@@ -419,14 +419,14 @@
             min-width: 50px;
             padding: 6px 8px;
             border-radius: 8px;
-            background: color-mix(in srgb, var(--primary-600, #E54F38) 12%, transparent);
-            color: var(--primary-600, #E54F38);
+            background: color-mix(in srgb, var(--primary-600, #4f46e5) 12%, transparent);
+            color: var(--primary-600, #4f46e5);
             font-weight: 700;
             font-size: 11px;
             text-align: center;
         }
         .dark .rd-interview-item__date {
-            background: color-mix(in srgb, var(--primary-600, #E54F38) 25%, transparent);
+            background: color-mix(in srgb, var(--primary-600, #4f46e5) 25%, transparent);
             color: var(--primary-300, #fcedeb);
         }
         .rd-interview-item__info {
@@ -542,7 +542,7 @@
             padding: 1px 7px;
             border-radius: 10px;
             background: rgba(99, 102, 241, 0.1);
-            color: #E54F38;
+            color: #4f46e5;
             font-weight: 600;
             font-size: 10px;
         }
@@ -848,13 +848,13 @@
             transition: all 0.15s;
         }
         .rd-period-preset:hover {
-            border-color: var(--primary-600, #E54F38);
-            color: var(--primary-600, #E54F38);
+            border-color: var(--primary-600, #4f46e5);
+            color: var(--primary-600, #4f46e5);
         }
         .rd-period-preset--active,
         .rd-period-preset--active:hover {
-            border-color: var(--primary-600, #E54F38) !important;
-            background: var(--primary-600, #E54F38) !important;
+            border-color: var(--primary-600, #4f46e5) !important;
+            background: var(--primary-600, #4f46e5) !important;
             color: #ffffff !important;
         }
         .dark .rd-period-picker input[type='month'] {
@@ -947,12 +947,13 @@
         }
     </style>
 
-    <div class="rd-dashboard">
+    {% include "pihrms/dashboard_styles.html" %}
+    <div class="rd-dashboard pi-dashboard">
         <!-- Header -->
-        <div class="rd-header">
+        <div class="rd-header pi-dashboard-header">
             <div>
                 <h1>{% trans "Recruitment Dashboard" %}</h1>
-                <div class="rd-header__date" id="rd-date"></div>
+                <div class="rd-header__date pi-dashboard-date" id="rd-date"></div>
                 <div class="rd-refresh">
                     <span class="rd-refresh__dot" id="rd-refresh-dot"></span><span
                         id="rd-refresh-text"
@@ -973,29 +974,29 @@
         </div>
 
         <!-- KPI Cards -->
-        <div class="rd-kpi-grid" id="rd-kpi-grid">
-            <div class="rd-skeleton rd-skeleton--kpi"></div>
-            <div class="rd-skeleton rd-skeleton--kpi"></div>
-            <div class="rd-skeleton rd-skeleton--kpi"></div>
-            <div class="rd-skeleton rd-skeleton--kpi"></div>
-            <div class="rd-skeleton rd-skeleton--kpi"></div>
+        <div class="rd-kpi-grid pi-dashboard-kpis" id="rd-kpi-grid">
+            <div class="rd-skeleton pi-dashboard-skeleton rd-skeleton--kpi"></div>
+            <div class="rd-skeleton pi-dashboard-skeleton rd-skeleton--kpi"></div>
+            <div class="rd-skeleton pi-dashboard-skeleton rd-skeleton--kpi"></div>
+            <div class="rd-skeleton pi-dashboard-skeleton rd-skeleton--kpi"></div>
+            <div class="rd-skeleton pi-dashboard-skeleton rd-skeleton--kpi"></div>
         </div>
 
         <!-- Main layout with sidebar -->
-        <div class="rd-layout">
+        <div class="rd-layout pi-dashboard-layout">
             <!-- Left: Charts -->
             <div class="rd-main">
-                <div class="rd-chart-grid">
+                <div class="rd-chart-grid pi-dashboard-chart-grid">
                     <!-- Stage Conversion Funnel -->
                     <div
-                        class="rd-chart-card rd-chart-card--wide"
+                        class="rd-chart-card pi-dashboard-card rd-chart-card--wide"
                         data-chart-id="stage_conversion"
                         data-chart-label="{% trans 'Candidate By Stage Type' %}"
-                    >
+                     role="group" aria-labelledby="pi-rd-chart-title-1">
                         <div class="rd-chart-card__header">
                             <div>
-                                <div class="rd-chart-card__title">{% trans "Candidate By Stage Type" %}</div>
-                                <div class="rd-chart-card__subtitle">{% trans "Open recruitments · click a stage to show or hide it" %}</div>
+                                <div class="rd-chart-card__title pi-dashboard-card-title" id="pi-rd-chart-title-1">{% trans "Candidate By Stage Type" %}</div>
+                                <div class="rd-chart-card__subtitle pi-dashboard-card-note">{% trans "Open recruitments · click a stage to show or hide it" %}</div>
                             </div>
                         </div>
                         <div class="rd-chart-card__body"><div id="chart-conversion-funnel"></div></div>
@@ -1004,14 +1005,14 @@
 
                     <!-- Offer Letter Status -->
                     <div
-                        class="rd-chart-card"
+                        class="rd-chart-card pi-dashboard-card"
                         data-chart-id="offer_status"
                         data-chart-label="{% trans 'Offer Letter Status' %}"
-                    >
+                     role="group" aria-labelledby="pi-rd-chart-title-2">
                         <div class="rd-chart-card__header">
                             <div>
-                                <div class="rd-chart-card__title">{% trans "Offer Letter Status" %}</div>
-                                <div class="rd-chart-card__subtitle">{% trans "Ongoing Recruitment Candidates" %}</div>
+                                <div class="rd-chart-card__title pi-dashboard-card-title" id="pi-rd-chart-title-2">{% trans "Offer Letter Status" %}</div>
+                                <div class="rd-chart-card__subtitle pi-dashboard-card-note">{% trans "Ongoing Recruitment Candidates" %}</div>
                             </div>
                         </div>
                         <div class="rd-chart-card__body"><div id="chart-offer-status"></div></div>
@@ -1019,14 +1020,14 @@
 
                     <!-- Hire Rate by Recruitment -->
                     <div
-                        class="rd-chart-card"
+                        class="rd-chart-card pi-dashboard-card"
                         data-chart-id="hire_rate"
                         data-chart-label="{% trans 'Shortlist Rate by Recruitment' %}"
-                    >
+                     role="group" aria-labelledby="pi-rd-chart-title-3">
                         <div class="rd-chart-card__header">
                             <div>
-                                <div class="rd-chart-card__title">{% trans "Shortlist Rate by Recruitment" %}</div>
-                                <div class="rd-chart-card__subtitle">{% trans "Conversion efficiency" %}</div>
+                                <div class="rd-chart-card__title pi-dashboard-card-title" id="pi-rd-chart-title-3">{% trans "Shortlist Rate by Recruitment" %}</div>
+                                <div class="rd-chart-card__subtitle pi-dashboard-card-note">{% trans "Conversion efficiency" %}</div>
                             </div>
                         </div>
                         <div class="rd-chart-card__body"><div id="chart-hire-rate"></div></div>
@@ -1034,14 +1035,14 @@
 
                     <!-- Vacancy vs Hired -->
                     <div
-                        class="rd-chart-card rd-chart-card"
+                        class="rd-chart-card pi-dashboard-card rd-chart-card"
                         data-chart-id="vacancy_vs_hired"
                         data-chart-label="{% trans 'Vacancy vs Shortlisted' %}"
-                    >
+                     role="group" aria-labelledby="pi-rd-chart-title-4">
                         <div class="rd-chart-card__header">
                             <div>
-                                <div class="rd-chart-card__title">{% trans "Vacancy vs Shortlisted" %}</div>
-                                <div class="rd-chart-card__subtitle">{% trans "Positions filled per recruitment" %}</div>
+                                <div class="rd-chart-card__title pi-dashboard-card-title" id="pi-rd-chart-title-4">{% trans "Vacancy vs Shortlisted" %}</div>
+                                <div class="rd-chart-card__subtitle pi-dashboard-card-note">{% trans "Positions filled per recruitment" %}</div>
                             </div>
                         </div>
                         <div class="rd-chart-card__body"><div id="chart-vacancy-hired"></div></div>
@@ -1049,14 +1050,14 @@
 
                     <!-- Talent Pool -->
                     <div
-                        class="rd-chart-card"
+                        class="rd-chart-card pi-dashboard-card"
                         data-chart-id="talent_pool"
                         data-chart-label="{% trans 'Talent Pool' %}"
-                    >
+                     role="group" aria-labelledby="pi-rd-chart-title-5">
                         <div class="rd-chart-card__header">
                             <div>
-                                <div class="rd-chart-card__title">{% trans "Talent Pool" %}</div>
-                                <div class="rd-chart-card__subtitle">{% trans "Active candidates per pool" %}</div>
+                                <div class="rd-chart-card__title pi-dashboard-card-title" id="pi-rd-chart-title-5">{% trans "Talent Pool" %}</div>
+                                <div class="rd-chart-card__subtitle pi-dashboard-card-note">{% trans "Active candidates per pool" %}</div>
                             </div>
                         </div>
                         <div class="rd-chart-card__body"><div id="chart-talent-pool"></div></div>
@@ -1064,14 +1065,14 @@
 
                     <!-- Source Conversion Rate -->
                     <div
-                        class="rd-chart-card rd-chart-card--wide"
+                        class="rd-chart-card pi-dashboard-card rd-chart-card--wide"
                         data-chart-id="source_conversion"
                         data-chart-label="{% trans 'Source Conversion Rate' %}"
-                    >
+                     role="group" aria-labelledby="pi-rd-chart-title-6">
                         <div class="rd-chart-card__header">
                             <div>
-                                <div class="rd-chart-card__title">{% trans "Source Conversion Rate" %}</div>
-                                <div class="rd-chart-card__subtitle">{% trans "How candidates heard about us · solid = hired, faded = not hired · click a bar to list them" %}</div>
+                                <div class="rd-chart-card__title pi-dashboard-card-title" id="pi-rd-chart-title-6">{% trans "Source Conversion Rate" %}</div>
+                                <div class="rd-chart-card__subtitle pi-dashboard-card-note">{% trans "How candidates heard about us · solid = hired, faded = not hired · click a bar to list them" %}</div>
                             </div>
                         </div>
                         <div class="rd-chart-card__body"><div id="chart-source-conv"></div></div>
@@ -1079,16 +1080,16 @@
 
                     <!-- Joinings Per Month -->
                     <div
-                        class="rd-chart-card rd-chart-card--wide"
+                        class="rd-chart-card pi-dashboard-card rd-chart-card--wide"
                         data-chart-id="joinings_monthly"
                         data-chart-label="{% trans 'Joinings Per Month' %}"
-                    >
+                     role="group" aria-labelledby="pi-rd-chart-title-7">
                         <div class="rd-chart-card__header">
                             <div>
-                                <div class="rd-chart-card__title">{% trans "Joinings Per Month" %}</div>
-                                <div class="rd-chart-card__subtitle">{% trans "Shortlisted candidates by joining date" %}</div>
+                                <div class="rd-chart-card__title pi-dashboard-card-title" id="pi-rd-chart-title-7">{% trans "Joinings Per Month" %}</div>
+                                <div class="rd-chart-card__subtitle pi-dashboard-card-note">{% trans "Shortlisted candidates by joining date" %}</div>
                             </div>
-                            <div class="rd-period-picker">
+                            <div class="rd-period-picker pi-dashboard-period">
                                 <input type="month" id="rd-join-from" title="{% trans 'From month' %}">
                                 <span class="rd-period-picker__sep">&rarr;</span>
                                 <input type="month" id="rd-join-to" title="{% trans 'To month' %}">
@@ -1099,14 +1100,14 @@
 
                     <!-- Rejected Candidates by Rejection Reason -->
                     <div
-                        class="rd-chart-card rd-chart-card--wide"
+                        class="rd-chart-card pi-dashboard-card rd-chart-card--wide"
                         data-chart-id="rejection_reasons"
                         data-chart-label="{% trans 'Rejected Candidates by Reason' %}"
-                    >
+                     role="group" aria-labelledby="pi-rd-chart-title-8">
                         <div class="rd-chart-card__header">
                             <div>
-                                <div class="rd-chart-card__title">{% trans "Rejected Candidates by Reason" %}</div>
-                                <div class="rd-chart-card__subtitle" id="rejection-reasons-subtitle">{% trans "Rejected candidates per rejection reason · click a bar to list them" %}</div>
+                                <div class="rd-chart-card__title pi-dashboard-card-title" id="pi-rd-chart-title-8">{% trans "Rejected Candidates by Reason" %}</div>
+                                <div class="rd-chart-card__subtitle pi-dashboard-card-note" id="rejection-reasons-subtitle">{% trans "Rejected candidates per rejection reason · click a bar to list them" %}</div>
                             </div>
                         </div>
                         <div class="rd-chart-card__body"><div id="chart-rejection-reasons"></div></div>
@@ -1115,11 +1116,11 @@
             </div>
 
             <!-- Right sidebar -->
-            <div class="rd-sidebar">
-                <div class="rd-info-panel">
+            <div class="rd-sidebar pi-dashboard-side">
+                <div class="rd-info-panel pi-dashboard-card">
                     <div class="rd-info-panel__header">
                         <div>
-                            <div class="rd-info-panel__title">{% trans "Interviews" %} <span class="rd-badge rd-badge--primary" id="rd-interviews-count">0</span></div>
+                            <div class="rd-info-panel__title pi-dashboard-card-title">{% trans "Interviews" %} <span class="rd-badge rd-badge--primary" id="rd-interviews-count">0</span></div>
                             <div class="rd-info-panel__subtitle">{% trans "Scheduled this period" %}</div>
                         </div>
                         <a href="{% url 'interview-view' %}" class="rd-panel__link">{% trans "View all" %}</a>
@@ -1152,9 +1153,9 @@
             const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
             const textColor = isDark ? '#e2e8f0' : '#334155';
             const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-            const COLORS = ['#E54F38','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
+            const COLORS = ['#4f46e5','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
 
-            const emptyHtml = (msg) => `<div class="rd-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+            const emptyHtml = (msg) => `<div class="rd-empty pi-dashboard-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
 
             document.getElementById('rd-date').textContent = new Date().toLocaleDateString('en-US', {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -1276,34 +1277,34 @@
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('rd-kpi-grid').innerHTML = `
-                <a href="{% url 'recruitment-view' %}" class="rd-kpi-card">
+                <a href="{% url 'recruitment-view' %}" class="rd-kpi-card pi-dashboard-card">
                     <div class="rd-kpi-card__icon rd-kpi-card__icon--amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
                     <div class="rd-kpi-card__label">{% trans "Total Vacancies"|escapejs %}</div>
-                    <div class="rd-kpi-card__value">${data.total_vacancy}</div>
+                    <div class="rd-kpi-card__value pi-dashboard-card-value">${data.total_vacancy}</div>
                     <div class="rd-kpi-card__sub"><span class="rd-badge rd-badge--blue">{% trans "Open Positions"|escapejs %}</span></div>
                 </a>
-                <a href="{% url 'recruitment-view' %}" class="rd-kpi-card">
+                <a href="{% url 'recruitment-view' %}" class="rd-kpi-card pi-dashboard-card">
                     <div class="rd-kpi-card__icon rd-kpi-card__icon--red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
                     <div class="rd-kpi-card__label">{% trans "Ongoing"|escapejs %}</div>
-                    <div class="rd-kpi-card__value">${data.ongoing_recruitments}</div>
+                    <div class="rd-kpi-card__value pi-dashboard-card-value">${data.ongoing_recruitments}</div>
                     <div class="rd-kpi-card__sub"><span class="rd-badge rd-badge--amber">{% trans "Active Recruitments"|escapejs %}</span></div>
                 </a>
-                <a href="{% url 'candidate-view' %}?hired=true&created_at_from=${data.period_from_date}&created_at_till=${data.period_to_date}&filter_applied=1" class="rd-kpi-card">
+                <a href="{% url 'candidate-view' %}?hired=true&created_at_from=${data.period_from_date}&created_at_till=${data.period_to_date}&filter_applied=1" class="rd-kpi-card pi-dashboard-card">
                     <div class="rd-kpi-card__icon rd-kpi-card__icon--green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg></div>
                     <div class="rd-kpi-card__label">{% trans "Shortlisted"|escapejs %} <span class="rd-kpi-card__period">· {% trans "This month"|escapejs %}</span></div>
-                    <div class="rd-kpi-card__value">${data.total_hired}</div>
+                    <div class="rd-kpi-card__value pi-dashboard-card-value">${data.total_hired}</div>
                     <div class="rd-kpi-card__sub"><span class="rd-badge rd-badge--green">{% trans "Of"|escapejs %} ${data.total_candidates} {% trans "Candidates"|escapejs %}</span></div>
                 </a>
-                <div class="rd-kpi-card rd-kpi-card--static" title="{% trans "Conversion Rate"|escapejs %} = {% trans "Shortlisted"|escapejs %} (${data.total_hired}) / {% trans "Total Candidates"|escapejs %} (${data.total_candidates}) × 100 = ${data.conversion_rate}%">
+                <div class="rd-kpi-card pi-dashboard-card rd-kpi-card--static" title="{% trans "Conversion Rate"|escapejs %} = {% trans "Shortlisted"|escapejs %} (${data.total_hired}) / {% trans "Total Candidates"|escapejs %} (${data.total_candidates}) × 100 = ${data.conversion_rate}%">
                     <div class="rd-kpi-card__icon rd-kpi-card__icon--blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
                     <div class="rd-kpi-card__label">{% trans "Conversion Rate"|escapejs %} <span class="rd-kpi-card__period">· {% trans "This month"|escapejs %}</span></div>
-                    <div class="rd-kpi-card__value">${data.conversion_rate}%</div>
+                    <div class="rd-kpi-card__value pi-dashboard-card-value">${data.conversion_rate}%</div>
                     <div class="rd-kpi-card__sub"><span class="rd-badge rd-badge--purple">{% trans "Shortlisted / Total"|escapejs %}</span></div>
                 </div>
-                <div class="rd-kpi-card rd-kpi-card--static" title="{% trans "Acceptance Rate"|escapejs %} = {% trans "Accepted Offers"|escapejs %} (${data.accepted_count}) / {% trans "Shortlisted"|escapejs %} (${data.total_hired}) × 100 = ${data.acceptance_rate}%">
+                <div class="rd-kpi-card pi-dashboard-card rd-kpi-card--static" title="{% trans "Acceptance Rate"|escapejs %} = {% trans "Accepted Offers"|escapejs %} (${data.accepted_count}) / {% trans "Shortlisted"|escapejs %} (${data.total_hired}) × 100 = ${data.acceptance_rate}%">
                     <div class="rd-kpi-card__icon rd-kpi-card__icon--purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 18 2 2 4-4"/></svg></div>
                     <div class="rd-kpi-card__label">{% trans "Acceptance Rate"|escapejs %} <span class="rd-kpi-card__period">· {% trans "This month"|escapejs %}</span></div>
-                    <div class="rd-kpi-card__value">${data.acceptance_rate}%</div>
+                    <div class="rd-kpi-card__value pi-dashboard-card-value">${data.acceptance_rate}%</div>
                     <div class="rd-kpi-card__sub"><span class="rd-badge rd-badge--green">{% trans "Offer Accepted"|escapejs %}</span></div>
                 </div>`;
                 });
@@ -1317,7 +1318,7 @@
             let stageData = [];
             const stageLabel = c => c.type === 'hired' ? '{% trans "Shortlisted"|escapejs %}' : c.stage;
             function drawStageChart() {
-                stageLegend.innerHTML = stageData.map(c => `<button type="button" class="rd-stage-chip ${stageHidden.has(c.type) ? 'rd-stage-chip--off' : ''}" data-stage-type="${c.type}"><span class="rd-stage-chip__dot" style="background:${stageColors[c.type] || '#E54F38'}"></span>${stageLabel(c)}</button>`).join('');
+                stageLegend.innerHTML = stageData.map(c => `<button type="button" class="rd-stage-chip ${stageHidden.has(c.type) ? 'rd-stage-chip--off' : ''}" data-stage-type="${c.type}"><span class="rd-stage-chip__dot" style="background:${stageColors[c.type] || '#4f46e5'}"></span>${stageLabel(c)}</button>`).join('');
                 const el = document.querySelector("#chart-conversion-funnel");
                 const visible = stageData.filter(c => !stageHidden.has(c.type));
                 if (!visible.length) {
@@ -1332,7 +1333,7 @@
                             window.location.href = "{% url 'candidate-view' %}?stage_id__stage_type=" + encodeURIComponent(visible[config.dataPointIndex].type);
                         }}
                     },
-                    colors: visible.map(c => stageColors[c.type] || '#E54F38'),
+                    colors: visible.map(c => stageColors[c.type] || '#4f46e5'),
                     plotOptions: { bar: { borderRadius: 8, columnWidth: '45%', distributed: true } },
                     xaxis: { categories: visible.map(stageLabel), labels: { style: { colors: textColor, fontSize: '12px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
                     yaxis: { labels: { style: { colors: textColor }, formatter: v => Math.round(v) }, forceNiceScale: true },
@@ -1378,7 +1379,7 @@
                 .then(data => {
                     const hasRealSource = data.sources.some(s => s.key !== 'not_set');
                     if (!data.sources.length || !hasRealSource) { PieLegend.clearFor(document.querySelector("#chart-source-hire")); document.querySelector("#chart-source-hire").innerHTML = emptyHtml('{% trans "No source data available yet"|escapejs %}'); return; }
-                    const sourceColors = { 'Application Form': '#3b82f6', 'Inside Software': '#E54F38', 'Referral': '#22c55e', 'Other': '#94a3b8' };
+                    const sourceColors = { 'Application Form': '#3b82f6', 'Inside Software': '#4f46e5', 'Referral': '#22c55e', 'Other': '#94a3b8' };
                     renderChart('source-hire', document.querySelector("#chart-source-hire"), PieLegend.options(document.querySelector("#chart-source-hire"), () => chartInstances['source-hire'], 'sources', {
                         series: data.sources.map(s => s.count),
                         chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit',
@@ -1553,7 +1554,7 @@
                                 window.location.href = "{% url 'candidate-view' %}?stage_id__stage_type=" + stage.type;
                             }}
                         },
-                        colors: data.stages.map(s => stageColors[s.type] || '#E54F38'),
+                        colors: data.stages.map(s => stageColors[s.type] || '#4f46e5'),
                         plotOptions: { bar: { borderRadius: 8, columnWidth: '55%', distributed: true } },
                         xaxis: { categories: data.stages.map(s => s.label), labels: { style: { colors: textColor, fontSize: '12px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
                         yaxis: { labels: { style: { colors: textColor } } },
@@ -1575,7 +1576,7 @@
                 .then(data => {
                     const total = data.data.reduce((a, b) => a + b, 0);
                     if (!total) { PieLegend.clearFor(document.querySelector("#chart-offer-status")); document.querySelector("#chart-offer-status").innerHTML = emptyHtml('{% trans "No candidates"|escapejs %}'); return; }
-                    const offerColors = ['#94a3b8', '#f59e0b', '#22c55e', '#ef4444', '#E54F38'];
+                    const offerColors = ['#94a3b8', '#f59e0b', '#22c55e', '#ef4444', '#4f46e5'];
                     renderChart('offer-status', document.querySelector("#chart-offer-status"), PieLegend.options(document.querySelector("#chart-offer-status"), () => chartInstances['offer-status'], 'statuses', {
                         series: data.data,
                         chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit',
@@ -1753,7 +1754,7 @@
                                 window.location.href = "{% url 'candidate-view' %}?recruitment=" + encodeURIComponent(rec) + "&hired=true";
                             }}
                         },
-                        colors: ['#E54F38'],
+                        colors: ['#4f46e5'],
                         plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
                         xaxis: { categories: data.data.map(d => d.recruitment), labels: { style: { colors: textColor, fontSize: '11px' }, rotate: -45 }, axisBorder: { show: false }, axisTicks: { show: false } },
                         yaxis: { labels: { style: { colors: textColor }, formatter: v => v + 'd' } },

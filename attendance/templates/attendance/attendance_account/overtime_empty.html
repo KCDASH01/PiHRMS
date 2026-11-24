@@ -1,4 +1,6 @@
 {% extends 'index.html' %}{% block content %}
+<div class="pi-time">
+
     {% load static %}
     {% load i18n %}
     {% load basefilters %}
@@ -39,4 +41,5 @@
             <p class="oh-empty__subtitle">{% trans "There are no attendance records to display." %}</p>
         </div>
     </div>
+</div>
 {% endblock %}

@@ -5,6 +5,9 @@
 
 
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-directory">
+
 
 <meta name="csrf-token" content="{{ csrf_token }}">
 
@@ -42,7 +45,10 @@
 
 </style>
 
-<div id="employeeListNavBar">
+<section class="pi-employee-heading">
+  <h1>{% trans "Employee Directory" %}</h1>
+</section>
+<div id="employeeListNavBar" class="pi-employee-toolbar">
 <div hx-get="{% url "employees-nav" %}?{{initial_nav_query|default:request.GET.urlencode}}" hx-trigger="load[this.children.length===0]">
 </div>
 </div>
@@ -434,4 +440,5 @@
 
       </script>
     {% endif %}
+</div>
 {% endblock content %}

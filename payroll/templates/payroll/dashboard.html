@@ -6,7 +6,7 @@
 {% include "components/legend_prefs.html" %}
 <style>
     :root {
-        --pd-indigo: var(--primary-600, #E54F38);
+        --pd-indigo: var(--pi-primary, #4f46e5);
         --pd-green: #22c55e;
         --pd-amber: #f59e0b;
         --pd-red: #ef4444;
@@ -219,16 +219,17 @@
     .dark .pd-pie-chip[data-tip]::after { background: #242424; color: #e2e8f0; border-color: rgba(255,255,255,0.12); }
 </style>
 
-<div class="pd-dashboard">
+{% include "pihrms/dashboard_styles.html" %}
+    <div class="pd-dashboard pi-dashboard">
 
-    <div class="pd-header">
+    <div class="pd-header pi-dashboard-header">
         <div>
             <h1>{% trans "Payroll Dashboard" %}</h1>
-            <div class="pd-header__date" id="pd-date"></div>
+            <div class="pd-header__date pi-dashboard-date" id="pd-date"></div>
             <div class="pd-refresh"><span class="pd-refresh__dot" id="pd-refresh-dot"></span><span id="pd-refresh-text">{% trans "Just now" %}</span><button class="pd-refresh__toggle" id="pd-refresh-toggle" title="{% trans 'Toggle auto-refresh' %}">⟳</button></div>
         </div>
         <div style="display:flex;gap:8px;">
-            <div class="pd-period-picker">
+            <div class="pd-period-picker pi-dashboard-period">
                 <button class="pd-period-preset" data-preset="today">{% trans "Today" %}</button>
                 <button class="pd-period-preset" data-preset="this_week">{% trans "This Week" %}</button>
                 <button class="pd-period-preset" data-preset="last_week">{% trans "Last Week" %}</button>
@@ -244,58 +245,58 @@
     </div>
 
     <!-- KPI Cards -->
-    <div class="pd-kpi-grid" id="pd-kpi-grid">
-        <div class="pd-skeleton pd-skeleton--kpi"></div>
-        <div class="pd-skeleton pd-skeleton--kpi"></div>
-        <div class="pd-skeleton pd-skeleton--kpi"></div>
-        <div class="pd-skeleton pd-skeleton--kpi"></div>
-        <div class="pd-skeleton pd-skeleton--kpi"></div>
+    <div class="pd-kpi-grid pi-dashboard-kpis" id="pd-kpi-grid">
+        <div class="pd-skeleton pi-dashboard-skeleton pd-skeleton--kpi"></div>
+        <div class="pd-skeleton pi-dashboard-skeleton pd-skeleton--kpi"></div>
+        <div class="pd-skeleton pi-dashboard-skeleton pd-skeleton--kpi"></div>
+        <div class="pd-skeleton pi-dashboard-skeleton pd-skeleton--kpi"></div>
+        <div class="pd-skeleton pi-dashboard-skeleton pd-skeleton--kpi"></div>
     </div>
 
     <!-- Main layout with sidebar -->
-    <div class="pd-layout">
+    <div class="pd-layout pi-dashboard-layout">
         <div class="pd-main">
-            <div class="pd-chart-grid">
+            <div class="pd-chart-grid pi-dashboard-chart-grid">
 
                 <!-- Payslip Status Pipeline -->
-                <div class="pd-chart-card pd-chart-card--wide" data-chart-id="payslip_pipeline" data-chart-label="{% trans 'Payslip Pipeline' %}">
-                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title">{% trans "Payslip Pipeline" %}</div><div class="pd-chart-card__subtitle">{% trans "Selected period — status distribution" %}</div></div></div>
+                <div class="pd-chart-card pi-dashboard-card pd-chart-card--wide" data-chart-id="payslip_pipeline" data-chart-label="{% trans 'Payslip Pipeline' %}" role="group" aria-labelledby="pi-pd-chart-title-1">
+                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title pi-dashboard-card-title" id="pi-pd-chart-title-1">{% trans "Payslip Pipeline" %}</div><div class="pd-chart-card__subtitle pi-dashboard-card-note">{% trans "Selected period — status distribution" %}</div></div></div>
                     <div class="pd-chart-card__body"><div id="pd-pipeline"></div></div>
                 </div>
 
                 <!-- Payroll Cost Trend -->
-                <div class="pd-chart-card pd-chart-card--wide" data-chart-id="payroll_trend" data-chart-label="{% trans 'Payroll Cost Trend' %}">
-                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title">{% trans "Payroll Cost Trend" %}</div><div class="pd-chart-card__subtitle">{% trans "Gross, deductions & net — last 6 months" %}</div></div></div>
+                <div class="pd-chart-card pi-dashboard-card pd-chart-card--wide" data-chart-id="payroll_trend" data-chart-label="{% trans 'Payroll Cost Trend' %}" role="group" aria-labelledby="pi-pd-chart-title-2">
+                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title pi-dashboard-card-title" id="pi-pd-chart-title-2">{% trans "Payroll Cost Trend" %}</div><div class="pd-chart-card__subtitle pi-dashboard-card-note">{% trans "Gross, deductions & net — last 6 months" %}</div></div></div>
                     <div class="pd-chart-card__body"><div id="chart-payroll-trend"></div></div>
                 </div>
 
                 <!-- Department Cost -->
-                <div class="pd-chart-card" data-chart-id="dept_cost" data-chart-label="{% trans 'Cost by Department' %}">
-                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title">{% trans "Cost by Department" %}</div><div class="pd-chart-card__subtitle"><span id="dept-month">{% trans "This month" %}</span> — {% trans "Net pay by department" %}</div></div></div>
+                <div class="pd-chart-card pi-dashboard-card" data-chart-id="dept_cost" data-chart-label="{% trans 'Cost by Department' %}" role="group" aria-labelledby="pi-pd-chart-title-3">
+                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title pi-dashboard-card-title" id="pi-pd-chart-title-3">{% trans "Cost by Department" %}</div><div class="pd-chart-card__subtitle pi-dashboard-card-note"><span id="dept-month">{% trans "This month" %}</span> — {% trans "Net pay by department" %}</div></div></div>
                     <div class="pd-chart-card__body"><div id="chart-dept-cost"></div></div>
                     <div class="pd-pie-legend" id="pd-legend-dept"></div>
                 </div>
 
                 <!-- Reimbursement Summary -->
-                <div class="pd-chart-card" data-chart-id="reimbursement" data-chart-label="{% trans 'Reimbursements' %}">
-                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title">{% trans "Reimbursements" %}</div><div class="pd-chart-card__subtitle">{% trans "Requests by status" %}</div></div></div>
+                <div class="pd-chart-card pi-dashboard-card" data-chart-id="reimbursement" data-chart-label="{% trans 'Reimbursements' %}" role="group" aria-labelledby="pi-pd-chart-title-4">
+                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title pi-dashboard-card-title" id="pi-pd-chart-title-4">{% trans "Reimbursements" %}</div><div class="pd-chart-card__subtitle pi-dashboard-card-note">{% trans "Requests by status" %}</div></div></div>
                     <div class="pd-chart-card__body"><div id="chart-reimbursement"></div></div>
                     <div class="pd-pie-legend" id="pd-legend-reimbursement"></div>
                 </div>
 
                 <!-- Pending Requests by Type -->
-                <div class="pd-chart-card" data-chart-id="pending_requests" data-chart-label="{% trans 'Reimbursements & Encashments' %}">
-                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title">{% trans "Reimbursements & Encashments" %}</div><div class="pd-chart-card__subtitle">{% trans "Pending requests by type" %}</div></div></div>
+                <div class="pd-chart-card pi-dashboard-card" data-chart-id="pending_requests" data-chart-label="{% trans 'Reimbursements & Encashments' %}" role="group" aria-labelledby="pi-pd-chart-title-5">
+                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title pi-dashboard-card-title" id="pi-pd-chart-title-5">{% trans "Reimbursements & Encashments" %}</div><div class="pd-chart-card__subtitle pi-dashboard-card-note">{% trans "Pending requests by type" %}</div></div></div>
                     <div class="pd-chart-card__body"><div id="chart-pending-requests"></div></div>
                 </div>
 
-                <div class="pd-chart-card" data-chart-id="contribution_cost" data-chart-label="{% trans 'Contribution Cost' %}">
-                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title">{% trans "Contribution Cost" %}</div><div class="pd-chart-card__subtitle" id="contribution-basis">{% trans "Employee and employer share, paid payslips" %}</div></div></div>
+                <div class="pd-chart-card pi-dashboard-card" data-chart-id="contribution_cost" data-chart-label="{% trans 'Contribution Cost' %}" role="group" aria-labelledby="pi-pd-chart-title-6">
+                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title pi-dashboard-card-title" id="pi-pd-chart-title-6">{% trans "Contribution Cost" %}</div><div class="pd-chart-card__subtitle pi-dashboard-card-note" id="contribution-basis">{% trans "Employee and employer share, paid payslips" %}</div></div></div>
                     <div class="pd-chart-card__body"><div id="chart-contribution-cost"></div></div>
                     <div class="pd-pie-legend" id="pd-legend-contribution"></div>
                 </div>
-                <div class="pd-chart-card" data-chart-id="run_coverage" data-chart-label="{% trans 'Payroll Run Progress' %}">
-                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title">{% trans "Payroll Run Progress" %}</div><div class="pd-chart-card__subtitle" id="coverage-basis">{% trans "Employees by payslip status" %}</div></div></div>
+                <div class="pd-chart-card pi-dashboard-card" data-chart-id="run_coverage" data-chart-label="{% trans 'Payroll Run Progress' %}" role="group" aria-labelledby="pi-pd-chart-title-7">
+                    <div class="pd-chart-card__header"><div><div class="pd-chart-card__title pi-dashboard-card-title" id="pi-pd-chart-title-7">{% trans "Payroll Run Progress" %}</div><div class="pd-chart-card__subtitle pi-dashboard-card-note" id="coverage-basis">{% trans "Employees by payslip status" %}</div></div></div>
                     <div class="pd-chart-card__body"><div id="chart-run-coverage"></div></div>
                     <div class="pd-pie-legend" id="pd-legend-coverage"></div>
                 </div>
@@ -304,11 +305,11 @@
         </div>
 
         <!-- Right sidebar -->
-        <div class="pd-sidebar">
-            <div class="pd-info-panel">
+        <div class="pd-sidebar pi-dashboard-side">
+            <div class="pd-info-panel pi-dashboard-card">
                 <div class="pd-info-panel__header">
                     <div class="pd-info-panel__heading">
-                        <div class="pd-info-panel__title">{% trans "Contracts Ending" %}<span id="pd-contracts-count" class="pd-count-badge" hidden title="{% trans 'Contracts ending or expired' %}">0</span></div>
+                        <div class="pd-info-panel__title pi-dashboard-card-title">{% trans "Contracts Ending" %}<span id="pd-contracts-count" class="pd-count-badge" hidden title="{% trans 'Contracts ending or expired' %}">0</span></div>
                         <div class="pd-info-panel__sub">{% trans "Next 60 days" %}</div>
                     </div>
                 </div>
@@ -316,10 +317,10 @@
                     <div class="pd-info-panel__empty">{% trans "Loading..." %}</div>
                 </div>
             </div>
-            <div class="pd-info-panel">
+            <div class="pd-info-panel pi-dashboard-card">
                 <div class="pd-info-panel__header">
                     <div class="pd-info-panel__heading">
-                        <div class="pd-info-panel__title">{% trans "Active Loans" %}<span id="pd-loans-count" class="pd-count-badge" hidden title="{% trans 'Active loans' %}">0</span></div>
+                        <div class="pd-info-panel__title pi-dashboard-card-title">{% trans "Active Loans" %}<span id="pd-loans-count" class="pd-count-badge" hidden title="{% trans 'Active loans' %}">0</span></div>
                         <div class="pd-info-panel__sub" data-period-label></div>
                     </div>
                 </div>
@@ -352,8 +353,8 @@ function pdInit() {
     const textColor = isDark ? '#e2e8f0' : '#334155';
     const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
     const cardBg = isDark ? '#242424' : '#ffffff';
-    const COLORS = ['#E54F38','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
-    const emptyHtml = (msg) => `<div class="pd-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+    const COLORS = ['#4f46e5','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
+    const emptyHtml = (msg) => `<div class="pd-empty pi-dashboard-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
     const fmt = v => Number(v).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     const CURRENCY_SYMBOL = "{{ currency|escapejs }}";
     const CURRENCY_POSITION = "{{ position|escapejs }}";
@@ -677,34 +678,34 @@ function pdInit() {
                 ? `<span class="pd-badge ${changeClass}">${changeIcon} ${Math.abs(data.change_pct)}%</span><span class="pd-kpi-card__vs">{% trans "vs"|escapejs %} ${data.prev_month} · ${fmtMoneyHtml(data.prev_net)}</span>`
                 : `<span class="pd-kpi-card__vs">{% trans "No paid payslips in"|escapejs %} ${data.prev_month}</span>`;
             document.getElementById('pd-kpi-grid').innerHTML = `
-                <a href="{% url 'view-payslip' %}?start_date_from=${fromInput.value}&start_date_till=${toInput.value}&filter_applied=1" class="pd-kpi-card">
+                <a href="{% url 'view-payslip' %}?start_date_from=${fromInput.value}&start_date_till=${toInput.value}&filter_applied=1" class="pd-kpi-card pi-dashboard-card">
                     <div class="pd-kpi-card__icon pd-kpi-card__icon--green" style="font-weight:700;">${escHtml(CURRENCY_SYMBOL)}</div>
                     <div class="pd-kpi-card__label">{% trans "Net Payroll"|escapejs %}</div>
-                    <div class="pd-kpi-card__value">${fmtMoneyHtml(data.total_net)}</div>
+                    <div class="pd-kpi-card__value pi-dashboard-card-value">${fmtMoneyHtml(data.total_net)}</div>
                     <div class="pd-kpi-card__sub pd-kpi-card__sub--compare">${netCompare}</div>
                 </a>
-                <a href="{% url 'view-payslip' %}?start_date_from=${fromInput.value}&start_date_till=${toInput.value}&filter_applied=1" class="pd-kpi-card">
+                <a href="{% url 'view-payslip' %}?start_date_from=${fromInput.value}&start_date_till=${toInput.value}&filter_applied=1" class="pd-kpi-card pi-dashboard-card">
                     <div class="pd-kpi-card__icon pd-kpi-card__icon--blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
                     <div class="pd-kpi-card__label">{% trans "Gross Pay"|escapejs %}</div>
-                    <div class="pd-kpi-card__value">${fmtMoneyHtml(data.total_gross)}</div>
+                    <div class="pd-kpi-card__value pi-dashboard-card-value">${fmtMoneyHtml(data.total_gross)}</div>
                     <div class="pd-kpi-card__sub"><span class="pd-badge pd-badge--blue">${data.total_payslips} {% trans "Payslips"|escapejs %}</span></div>
                 </a>
-                <a href="{% url 'view-payslip' %}?start_date_from=${fromInput.value}&start_date_till=${toInput.value}&filter_applied=1" class="pd-kpi-card">
+                <a href="{% url 'view-payslip' %}?start_date_from=${fromInput.value}&start_date_till=${toInput.value}&filter_applied=1" class="pd-kpi-card pi-dashboard-card">
                     <div class="pd-kpi-card__icon pd-kpi-card__icon--red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
                     <div class="pd-kpi-card__label">{% trans "Deductions"|escapejs %}</div>
-                    <div class="pd-kpi-card__value">${fmtMoneyHtml(data.total_deductions)}</div>
+                    <div class="pd-kpi-card__value pi-dashboard-card-value">${fmtMoneyHtml(data.total_deductions)}</div>
                     <div class="pd-kpi-card__sub"><span class="pd-badge pd-badge--blue">${data.month}</span></div>
                 </a>
-                <a href="{% url 'view-loan' %}?open_tab=1&settled=False&filter_applied=1" class="pd-kpi-card">
+                <a href="{% url 'view-loan' %}?open_tab=1&settled=False&filter_applied=1" class="pd-kpi-card pi-dashboard-card">
                     <div class="pd-kpi-card__icon pd-kpi-card__icon--amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg></div>
                     <div class="pd-kpi-card__label">{% trans "Active Loans"|escapejs %}</div>
-                    <div class="pd-kpi-card__value">${data.active_loans}</div>
+                    <div class="pd-kpi-card__value pi-dashboard-card-value">${data.active_loans}</div>
                     <div class="pd-kpi-card__sub">${data.loan_amount > 0 ? '<span class="pd-badge pd-badge--amber">' + fmtMoneyHtml(data.loan_amount) + ' {% trans "Total"|escapejs %}</span>' : '<span class="pd-badge pd-badge--green">{% trans "No Active Loans"|escapejs %}</span>'}</div>
                 </a>
-                <a href="{% url 'view-reimbursement' %}?open_tab=1&status=requested&type=reimbursement&filter_applied=1" class="pd-kpi-card">
+                <a href="{% url 'view-reimbursement' %}?open_tab=1&status=requested&type=reimbursement&filter_applied=1" class="pd-kpi-card pi-dashboard-card">
                     <div class="pd-kpi-card__icon pd-kpi-card__icon--purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                     <div class="pd-kpi-card__label">{% trans "Reimbursements"|escapejs %}</div>
-                    <div class="pd-kpi-card__value">${data.pending_reimbursements}</div>
+                    <div class="pd-kpi-card__value pi-dashboard-card-value">${data.pending_reimbursements}</div>
                     <div class="pd-kpi-card__sub"><span class="pd-badge pd-badge--amber">{% trans "Pending Requests"|escapejs %}</span></div>
                 </a>`;
         });
@@ -914,7 +915,7 @@ function pdInit() {
                 chart: { type: 'bar', stacked: true, height: 300, toolbar: { show: false }, zoom: { enabled: false, allowMouseWheelZoom: false }, background: 'transparent', fontFamily: 'inherit',
                     events: { dataPointSelection: () => { window.location.href = "{% url 'payroll-contribution-list' %}?from_date=" + fromInput.value + "&to_date=" + toInput.value; } }
                 },
-                colors: ['#3b82f6', '#E54F38'],
+                colors: ['#3b82f6', '#4f46e5'],
                 plotOptions: { bar: { borderRadius: 4, columnWidth: '45%' } },
                 xaxis: { categories: comps.map(axisLabel), labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false } },
                 yaxis: { labels: { style: { colors: textColor, fontSize: '11px' }, formatter: v => fmtMoney(v) } },
@@ -925,7 +926,7 @@ function pdInit() {
                 // it shows nothing there: hovering the bar itself is what works.
                 tooltip: stdTooltip({ shared: comps.length > 1, title: i => comps[i].title + (comps[i].code ? ' (' + comps[i].code + ')' : '') + (comps[i].company ? ' · ' + comps[i].company : ''), rows: (i, g) => [
                     { color: '#3b82f6', label: '{% trans "Employee share"|escapejs %}', value: fmtMoney(comps[i].employee) },
-                    { color: '#E54F38', label: '{% trans "Employer share"|escapejs %}', value: fmtMoney(comps[i].employer) },
+                    { color: '#4f46e5', label: '{% trans "Employer share"|escapejs %}', value: fmtMoney(comps[i].employer) },
                     { label: '{% trans "Total"|escapejs %}', value: fmtMoney(comps[i].total), total: true },
                     { label: '{% trans "Employees"|escapejs %}', value: comps[i].employees },
                 ] }),

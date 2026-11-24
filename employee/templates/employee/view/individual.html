@@ -5,6 +5,9 @@
 {% load horillafilters %}
 
 {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-profile">
+
     {% include "generic/components.html" %}
 
     <style>
@@ -285,4 +288,5 @@
         $('#reloadMessagesButton').click();
         {% endif %}
     </script>
+</div>
 {% endblock content %}

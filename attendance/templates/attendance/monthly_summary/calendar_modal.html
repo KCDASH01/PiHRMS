@@ -468,7 +468,7 @@
 <div class="cal-body"{% if readonly %} style="max-height:none;overflow:visible;"{% endif %}>
   {% for month in months %}
   <div class="cal-month-label">{{ month.label }}</div>
-  <div class="cal-grid">
+  <div class="cal-grid pi-time pi-time-calendar-grid" role="group" aria-label="{{ month.label }}">
     <div class="cal-dow">{% trans "Mon" %}</div>
     <div class="cal-dow">{% trans "Tue" %}</div>
     <div class="cal-dow">{% trans "Wed" %}</div>
@@ -491,7 +491,10 @@
                data-groups="{{ cell.groups }}"
                data-halves="{{ cell.halves_data }}"
                title="{{ cell.date|date:'d M Y' }}{% if cell.split_label %} — {{ cell.split_label }}{% elif cell.detail %} — {{ cell.detail }}{% endif %}{% if cell.conflict_with == 'paid_leave' or cell.conflict_with == 'unpaid_leave' %} ⚠ {% if cell.conflict_reason %}{{ cell.conflict_reason }}{% else %}conflicts with {{ cell.conflict_with }}{% endif %}{% elif cell.conflict_with == 'holiday_ot' %} HO — Holiday Overtime{% elif cell.conflict_with == 'week_off_ot' %} WO — Week Off Overtime{% elif cell.conflict_with == 'regular_ot' %} OT — Overtime{% elif cell.resolution %} ✓ resolved{% endif %}{% if not readonly %}{% trans ' — Ctrl/Shift-click to select multiple days' %}{% endif %}"
-               {% if not readonly %}onclick="msCalCellClick(event, this, '{{ cell.date|date:'Y-m-d' }}', '{{ cell.conflict_with|default:'' }}', '{{ cell.detail|default:''|escapejs }}')"{% endif %}
+               {% if not readonly %}onclick="msCalCellClick(event, this, '{{ cell.date|date:'Y-m-d' }}', '{{ cell.conflict_with|default:'' }}', '{{ cell.detail|default:''|escapejs }}')"
+               role="button" tabindex="0"
+               aria-label="{{ cell.date|date:'d M Y' }}{% if cell.split_label %}, {{ cell.split_label }}{% elif cell.detail %}, {{ cell.detail }}{% endif %}"
+               onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); if (!event.repeat) this.click(); }"{% endif %}
                {% if cell.split_style %}style="{{ cell.split_style }}{% if readonly %};cursor:default{% endif %}"{% elif readonly %}style="cursor:default;"{% endif %}>
             <div class="cal-day-num">{{ cell.day }}</div>
             {% if cell.split_label %}{% elif cell.detail %}<div class="cal-day-detail">{{ cell.detail }}</div>{% endif %}

@@ -1,4 +1,7 @@
-{% extends "index.html" %} {% block content %} {% load static %} {% load i18n %}
+{% extends "index.html" %} {% block content %}
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-documents">
+ {% load static %} {% load i18n %}
 {% load basefilters %} {% load horillafilters %}
 <style>
 	.file-upload {
@@ -40,4 +43,5 @@
 </div>
 
 
+</div>
 {% endblock content %}

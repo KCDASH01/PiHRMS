@@ -2,6 +2,9 @@
 {% load i18n %}
 {% load static i18n horillafilters mathfilters %}
 {% block content %}
+{% include "pihrms/dashboard_styles.html" %}
+<div class="pi-dashboard pi-dashboard--legacy">
+
     {% get_company as theme_obj %}
     <style>
         .oh-info {
@@ -224,4 +227,5 @@
     </div>
 
     <script src="{% static 'offboarding/dashboard.js' %}"></script>
+</div>
 {% endblock %}

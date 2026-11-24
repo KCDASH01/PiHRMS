@@ -3,6 +3,8 @@
 {% get_company as theme_obj %}
 
 {% block content %}
+<div class="pi-time">
+
     <style>
         .oh-tabs__tab {
             display: flex;
@@ -121,4 +123,5 @@
             runWhenHtmxReady(restoreTimePoliciesTab);
         })();
     </script>
+</div>
 {% endblock content %}

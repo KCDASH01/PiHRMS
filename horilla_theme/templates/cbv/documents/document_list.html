@@ -29,7 +29,7 @@
         <div class="bg-white p-5 pe-2 pt-3 rounded-md shadow-card relative doc-list">
             <div class="max-h-[600px] overflow-hidden overflow-y-auto overflow-x-auto heightContainer">
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden doc-list-table">
-                    <div class="hidden md:grid grid-cols-[60px_1fr_120px_120px_180px] gap-4 px-6 py-4 doc-list-head text-xs font-semibold uppercase tracking-wider items-center">
+                    <div class="pi-employee-document-head hidden md:grid grid-cols-[60px_1fr_120px_120px_180px] gap-4 px-6 py-4 doc-list-head text-xs font-semibold uppercase tracking-wider items-center">
                         <div></div>
                         <div>{% trans "Document" %}</div>
                         <div>{% trans "Status" %}</div>
@@ -40,7 +40,7 @@
                     {% for document in queryset %}
                         <div
                             class="
-                                grid md:grid-cols-[60px_1fr_120px_120px_180px] gap-4 px-6 py-4 border-b border-primary-200 items-center hover:bg-primary-50 cursor-pointer
+                                pi-employee-document-row grid md:grid-cols-[60px_1fr_120px_120px_180px] gap-4 px-6 py-4 border-b border-primary-200 items-center hover:bg-primary-50 cursor-pointer
                                 {% if document.document %}
                                 {% if document.status == "approved" %}row-status--yellow
                                 {% elif document.status == 'rejected' %}row-status--red

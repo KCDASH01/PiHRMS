@@ -30,10 +30,11 @@
     }
 </style>
 
-<div id="employee-update-form-root"{% if active_tab %} data-active-tab="{{ active_tab }}"{% endif %}>
+{% include "pihrms/employee_styles.html" %}
+<div class="pi-employee pi-employee-edit" id="employee-update-form-root"{% if active_tab %} data-active-tab="{{ active_tab }}"{% endif %}>
 
     <!-- Header + Stepper -->
-    <div class="bg-white rounded-2xl shadow-card px-6 py-3 mb-2">
+    <div class="pi-employee-heading bg-white rounded-2xl shadow-card px-6 py-3 mb-2">
         <div class="flex items-center justify-between flex-wrap gap-3">
             <!-- Left: Back + Title -->
             <div class="flex items-center gap-4">

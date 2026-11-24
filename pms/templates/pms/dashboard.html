@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --pm-indigo: var(--primary-600, #E54F38);
+            --pm-indigo: var(--pi-primary, #4f46e5);
             --pm-green: #22c55e;
             --pm-amber: #f59e0b;
             --pm-red: #ef4444;
@@ -655,14 +655,14 @@
             margin-left: auto;
             padding: 6px 10px;
             border-radius: 8px;
-            background: color-mix(in srgb, var(--primary-600, #E54F38) 12%, transparent);
-            color: var(--primary-600, #E54F38);
+            background: color-mix(in srgb, var(--primary-600, #4f46e5) 12%, transparent);
+            color: var(--primary-600, #4f46e5);
             font-weight: 700;
             font-size: 11px;
             white-space: nowrap;
         }
         .dark .pm-meeting-item__when {
-            background: color-mix(in srgb, var(--primary-600, #E54F38) 25%, transparent);
+            background: color-mix(in srgb, var(--primary-600, #4f46e5) 25%, transparent);
             color: var(--primary-300, #fcedeb);
         }
         .pm-meeting-item__info {
@@ -998,11 +998,12 @@
         }
     </style>
 
-    <div class="pm-dashboard">
-        <div class="pm-header">
+    {% include "pihrms/dashboard_styles.html" %}
+    <div class="pm-dashboard pi-dashboard">
+        <div class="pm-header pi-dashboard-header">
             <div>
                 <h1>{% trans "Performance Dashboard" %}</h1>
-                <div class="pm-header__date" id="pm-date"></div>
+                <div class="pm-header__date pi-dashboard-date" id="pm-date"></div>
                 <div class="pm-refresh">
                     <span class="pm-refresh__dot" id="pm-refresh-dot"></span><span
                         id="pm-refresh-text"
@@ -1016,7 +1017,7 @@
                 </div>
             </div>
             <div style="display: flex; gap: 8px">
-                <div class="pm-period-picker">
+                <div class="pm-period-picker pi-dashboard-period">
                     <button class="pm-period-preset" data-preset="today">{% trans "Today" %}</button>
                     <button class="pm-period-preset" data-preset="this_week">{% trans "This Week" %}</button>
                     <button class="pm-period-preset" data-preset="last_week">{% trans "Last Week" %}</button>
@@ -1038,67 +1039,67 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             </span>
         </div>
-        <div class="pm-kpi-grid" id="pm-kpi-grid">
-            <div class="pm-skeleton pm-skeleton--kpi"></div>
-            <div class="pm-skeleton pm-skeleton--kpi"></div>
-            <div class="pm-skeleton pm-skeleton--kpi"></div>
-            <div class="pm-skeleton pm-skeleton--kpi"></div>
+        <div class="pm-kpi-grid pi-dashboard-kpis" id="pm-kpi-grid">
+            <div class="pm-skeleton pi-dashboard-skeleton pm-skeleton--kpi"></div>
+            <div class="pm-skeleton pi-dashboard-skeleton pm-skeleton--kpi"></div>
+            <div class="pm-skeleton pi-dashboard-skeleton pm-skeleton--kpi"></div>
+            <div class="pm-skeleton pi-dashboard-skeleton pm-skeleton--kpi"></div>
         </div>
 
-        <div class="pm-layout">
+        <div class="pm-layout pi-dashboard-layout">
             <div class="pm-main">
-                <div class="pm-chart-grid">
+                <div class="pm-chart-grid pi-dashboard-chart-grid">
                     <div
-                        class="pm-chart-card"
+                        class="pm-chart-card pi-dashboard-card"
                         data-chart-id="obj_status"
                         data-chart-label="{% trans 'Objective Status' %}"
-                    >
+                     role="group" aria-labelledby="pi-pm-chart-title-1">
                         <div class="pm-chart-card__header">
                             <div>
-                                <div class="pm-chart-card__title">{% trans "Objective Status" %}</div>
-                                <div class="pm-chart-card__subtitle">{% trans "Active objectives" %}<span data-period-label></span></div>
+                                <div class="pm-chart-card__title pi-dashboard-card-title" id="pi-pm-chart-title-1">{% trans "Objective Status" %}</div>
+                                <div class="pm-chart-card__subtitle pi-dashboard-card-note">{% trans "Active objectives" %}<span data-period-label></span></div>
                             </div>
                         </div>
                         <div class="pm-chart-card__body"><div id="chart-obj-status"></div><div id="legend-obj-status" class="pm-pill-legend"></div></div>
                     </div>
 
                     <div
-                        class="pm-chart-card"
+                        class="pm-chart-card pi-dashboard-card"
                         data-chart-id="kr_status"
                         data-chart-label="{% trans 'Key Result Status' %}"
-                    >
+                     role="group" aria-labelledby="pi-pm-chart-title-2">
                         <div class="pm-chart-card__header">
                             <div>
-                                <div class="pm-chart-card__title">{% trans "Key Result Status" %}</div>
-                                <div class="pm-chart-card__subtitle">{% trans "Key results" %}<span data-period-label></span></div>
+                                <div class="pm-chart-card__title pi-dashboard-card-title" id="pi-pm-chart-title-2">{% trans "Key Result Status" %}</div>
+                                <div class="pm-chart-card__subtitle pi-dashboard-card-note">{% trans "Key results" %}<span data-period-label></span></div>
                             </div>
                         </div>
                         <div class="pm-chart-card__body"><div id="chart-kr-status"></div><div id="legend-kr-status" class="pm-pill-legend"></div></div>
                     </div>
 
                     <div
-                        class="pm-chart-card"
+                        class="pm-chart-card pi-dashboard-card"
                         data-chart-id="fb_status"
                         data-chart-label="{% trans 'Feedback Status' %}"
-                    >
+                     role="group" aria-labelledby="pi-pm-chart-title-3">
                         <div class="pm-chart-card__header">
                             <div>
-                                <div class="pm-chart-card__title">{% trans "Feedback Status" %}</div>
-                                <div class="pm-chart-card__subtitle">{% trans "360° feedback cycles" %}<span data-period-label></span></div>
+                                <div class="pm-chart-card__title pi-dashboard-card-title" id="pi-pm-chart-title-3">{% trans "Feedback Status" %}</div>
+                                <div class="pm-chart-card__subtitle pi-dashboard-card-note">{% trans "360° feedback cycles" %}<span data-period-label></span></div>
                             </div>
                         </div>
                         <div class="pm-chart-card__body"><div id="chart-fb-status"></div><div id="legend-fb-status" class="pm-pill-legend"></div></div>
                     </div>
 
                     <div
-                        class="pm-chart-card"
+                        class="pm-chart-card pi-dashboard-card"
                         data-chart-id="dept_performance"
                         data-chart-label="{% trans 'Department Performance' %}"
-                    >
+                     role="group" aria-labelledby="pi-pm-chart-title-4">
                         <div class="pm-chart-card__header">
                             <div>
-                                <div class="pm-chart-card__title">{% trans "Department Performance" %}</div>
-                                <div class="pm-chart-card__subtitle">
+                                <div class="pm-chart-card__title pi-dashboard-card-title" id="pi-pm-chart-title-4">{% trans "Department Performance" %}</div>
+                                <div class="pm-chart-card__subtitle pi-dashboard-card-note">
                                     {% trans "Avg objective progress by department" %}<span data-period-label></span>
                                 </div>
                             </div>
@@ -1107,14 +1108,14 @@
                     </div>
 
                     <div
-                        class="pm-chart-card pm-chart-card--wide"
+                        class="pm-chart-card pi-dashboard-card pm-chart-card--wide"
                         data-chart-id="okr_overview"
                         data-chart-label="{% trans 'OKR Progress Overview' %}"
-                    >
+                     role="group" aria-labelledby="pi-pm-chart-title-5">
                         <div class="pm-chart-card__header">
                             <div>
-                                <div class="pm-chart-card__title">{% trans "OKR Progress Overview" %}</div>
-                                <div class="pm-chart-card__subtitle">
+                                <div class="pm-chart-card__title pi-dashboard-card-title" id="pi-pm-chart-title-5">{% trans "OKR Progress Overview" %}</div>
+                                <div class="pm-chart-card__subtitle pi-dashboard-card-note">
                                     {% trans "Top objectives with key result breakdown" %}<span data-period-label></span>
                                 </div>
                             </div>
@@ -1124,11 +1125,11 @@
                 </div>
             </div>
 
-            <div class="pm-sidebar">
-                <div class="pm-info-panel">
+            <div class="pm-sidebar pi-dashboard-side">
+                <div class="pm-info-panel pi-dashboard-card">
                     <div class="pm-info-panel__header">
                         <div class="pm-info-panel__heading">
-                            <div class="pm-info-panel__title">{% trans "Top Performers" %}<span id="pm-performers-count" class="pm-count-badge" hidden title="{% trans 'Employees with objectives in this period' %}">0</span></div>
+                            <div class="pm-info-panel__title pi-dashboard-card-title">{% trans "Top Performers" %}<span id="pm-performers-count" class="pm-count-badge" hidden title="{% trans 'Employees with objectives in this period' %}">0</span></div>
                             <div class="pm-info-panel__sub" data-period-label="bare"></div>
                         </div>
                     </div>
@@ -1136,10 +1137,10 @@
                         <div class="pm-info-panel__empty">{% trans "Loading..." %}</div>
                     </div>
                 </div>
-                <div class="pm-info-panel">
+                <div class="pm-info-panel pi-dashboard-card">
                     <div class="pm-info-panel__header">
                         <div class="pm-info-panel__heading">
-                            <div class="pm-info-panel__title">{% trans "Upcoming Meetings" %}<span id="pm-meetings-count" class="pm-count-badge" hidden title="{% trans 'Meetings in the next 14 days' %}">0</span></div>
+                            <div class="pm-info-panel__title pi-dashboard-card-title">{% trans "Upcoming Meetings" %}<span id="pm-meetings-count" class="pm-count-badge" hidden title="{% trans 'Meetings in the next 14 days' %}">0</span></div>
                             <div class="pm-info-panel__sub">{% trans "Next 14 days" %}</div>
                         </div>
                     </div>
@@ -1172,11 +1173,11 @@
             const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
             const cardBg = isDark ? '#242424' : '#ffffff';
             // The active theme's primary colour, so slices that use it follow the theme.
-            const themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim() || '#E54F38';
+            const themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim() || '#4f46e5';
             const COLORS = [themePrimary,'#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
             const statusColors = { 'Not Started': '#94a3b8', 'On Track': '#22c55e', 'Behind': '#f59e0b', 'At Risk': '#ef4444', 'Closed': themePrimary };
             const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-            const emptyHtml = (msg) => `<div class="pm-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+            const emptyHtml = (msg) => `<div class="pm-empty pi-dashboard-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
             const objectiveListUrl = "{% url 'employee-objective-list-view' %}";
             const objectiveListUrlFor = id => id ? `${objectiveListUrl}?employee_id=${id}` : '#';
 
@@ -1393,28 +1394,28 @@
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('pm-kpi-grid').innerHTML = `
-                <a href="{% url 'employee-objective-list-view' %}?exclude_status=Closed" class="pm-kpi-card">
+                <a href="{% url 'employee-objective-list-view' %}?exclude_status=Closed" class="pm-kpi-card pi-dashboard-card">
                     <div class="pm-kpi-card__icon pm-kpi-card__icon--indigo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
                     <div class="pm-kpi-card__label">{% trans "Objectives"|escapejs %}</div>
-                    <div class="pm-kpi-card__value">${data.total_objectives}</div>
+                    <div class="pm-kpi-card__value pi-dashboard-card-value">${data.total_objectives}</div>
                     <div class="pm-kpi-card__sub"><span class="pm-badge pm-badge--green">{% trans "Open Assignments"|escapejs %}</span></div>
                 </a>
-                <div class="pm-kpi-card" title="{% trans "Average progress across all employee key results,"|escapejs %}&#10;{% trans "Avg Progress"|escapejs %} = {% trans "Total Key Result Progress"|escapejs %} / {% trans "Total Key Results"|escapejs %} = ${data.avg_progress}%">
+                <div class="pm-kpi-card pi-dashboard-card" title="{% trans "Average progress across all employee key results,"|escapejs %}&#10;{% trans "Avg Progress"|escapejs %} = {% trans "Total Key Result Progress"|escapejs %} / {% trans "Total Key Results"|escapejs %} = ${data.avg_progress}%">
                     <div class="pm-kpi-card__icon pm-kpi-card__icon--green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
                     <div class="pm-kpi-card__label">{% trans "Avg Progress"|escapejs %}</div>
-                    <div class="pm-kpi-card__value">${data.avg_progress}%</div>
+                    <div class="pm-kpi-card__value pi-dashboard-card-value">${data.avg_progress}%</div>
                     <div class="pm-kpi-card__sub"><span class="pm-badge pm-badge--blue">${data.total_key_results} {% trans "Key Results"|escapejs %}</span></div>
                 </div>
-                <a href="{% url 'employee-objective-list-view' %}?status=At+Risk" class="pm-kpi-card">
+                <a href="{% url 'employee-objective-list-view' %}?status=At+Risk" class="pm-kpi-card pi-dashboard-card">
                     <div class="pm-kpi-card__icon pm-kpi-card__icon--red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
                     <div class="pm-kpi-card__label">{% trans "At Risk"|escapejs %}</div>
-                    <div class="pm-kpi-card__value">${data.at_risk}</div>
+                    <div class="pm-kpi-card__value pi-dashboard-card-value">${data.at_risk}</div>
                     <div class="pm-kpi-card__sub"><span class="pm-badge pm-badge--red">{% trans "Objectives Need Attention"|escapejs %}</span></div>
                 </a>
-                <a href="{% url 'feedback-view' %}?open_tab=3" class="pm-kpi-card">
+                <a href="{% url 'feedback-view' %}?open_tab=3" class="pm-kpi-card pi-dashboard-card">
                     <div class="pm-kpi-card__icon pm-kpi-card__icon--amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
                     <div class="pm-kpi-card__label">{% trans "Feedback"|escapejs %}</div>
-                    <div class="pm-kpi-card__value">${data.total_feedbacks}</div>
+                    <div class="pm-kpi-card__value pi-dashboard-card-value">${data.total_feedbacks}</div>
                     <div class="pm-kpi-card__sub">${data.pending_feedback > 0 ? '<span class="pm-badge pm-badge--amber">' + data.pending_feedback + ' {% trans "Pending"|escapejs %}</span>' : '<span class="pm-badge pm-badge--green">{% trans "All Reviewed"|escapejs %}</span>'}</div>
                 </a>`;
                 });

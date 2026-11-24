@@ -1,5 +1,7 @@
 {% extends "index.html" %}
 {% block content %}
+<div class="pi-time">
+
     {% load i18n %}
     {% load basefilters %}
     {% load horillafilters %}
@@ -160,4 +162,5 @@
           $(elem).siblings(".add_more_submit").click();
         }
     </script>
+</div>
 {% endblock content %}

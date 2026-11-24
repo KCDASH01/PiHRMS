@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --ess-indigo: var(--primary-600, #e54f38);
+            --ess-indigo: var(--pi-primary, #4f46e5);
             --ess-green: #22c55e;
             --ess-amber: #f59e0b;
             --ess-red: #ef4444;
@@ -336,7 +336,7 @@
             pointer-events: none;
         }
         .ess-chart-card[data-section="leave"]::before {
-            background: linear-gradient(90deg, #e54f38, #a855f7);
+            background: linear-gradient(90deg, #4f46e5, #a855f7);
         }
         .ess-chart-card[data-section="attendance"]::before {
             background: linear-gradient(90deg, #22c55e, #06b6d4);
@@ -345,7 +345,7 @@
             background: linear-gradient(90deg, #f59e0b, #ef4444);
         }
         .ess-chart-card[data-section="goals"]::before {
-            background: linear-gradient(90deg, #3b82f6, #e54f38);
+            background: linear-gradient(90deg, #3b82f6, #4f46e5);
         }
         .ess-chart-card[data-section="calendar"]::before {
             background: linear-gradient(90deg, #22c55e, #06b6d4);
@@ -882,14 +882,18 @@
             }
         }
     </style>
-    <div class="ess-dashboard">
+    {% include "pihrms/dashboard_styles.html" %}
+    <div class="ess-dashboard pi-dashboard">
         <!-- Header -->
-        <div class="ess-header">
+        <div class="ess-header pi-dashboard-header">
             <div>
+                {% if employee.employee_first_name %}
+                    <p class="pi-dashboard-welcome">{% blocktrans with first_name=employee.employee_first_name %}Welcome, {{ first_name }}{% endblocktrans %}</p>
+                {% endif %}
                 <h1>{% trans "My Dashboard" %}</h1>
-                <div class="ess-header__date" id="essHeaderDate"></div>
+                <div class="ess-header__date pi-dashboard-date" id="essHeaderDate"></div>
             </div>
-            <div class="ess-header__actions">
+            <div class="ess-header__actions pi-dashboard-actions">
                 {% if can_switch_to_main_dashboard %}
                     <a
                         href="{% url 'dashboard' %}"
@@ -915,7 +919,7 @@
                         {% trans "Admin Dashboard" %}
                     </a>
                 {% endif %}
-                <div class="ess-period-picker">
+                <div class="ess-period-picker pi-dashboard-period">
                     <button class="ess-period-preset" data-preset="today">
                         {% trans "Today" %}
                     </button>
@@ -946,26 +950,26 @@
         </div>
 
         <!-- KPI Row -->
-        <div class="ess-kpi-grid" id="essKpiGrid">
-            <div class="ess-skeleton ess-skeleton--kpi"></div>
-            <div class="ess-skeleton ess-skeleton--kpi"></div>
-            <div class="ess-skeleton ess-skeleton--kpi"></div>
-            <div class="ess-skeleton ess-skeleton--kpi"></div>
+        <div class="ess-kpi-grid pi-dashboard-kpis" id="essKpiGrid">
+            <div class="ess-skeleton pi-dashboard-skeleton ess-skeleton--kpi"></div>
+            <div class="ess-skeleton pi-dashboard-skeleton ess-skeleton--kpi"></div>
+            <div class="ess-skeleton pi-dashboard-skeleton ess-skeleton--kpi"></div>
+            <div class="ess-skeleton pi-dashboard-skeleton ess-skeleton--kpi"></div>
         </div>
 
         <!-- Main layout -->
-        <div class="ess-layout">
+        <div class="ess-layout pi-dashboard-layout">
             <!-- Left: charts -->
             <div class="ess-main">
                 <!-- Row 2: Monthly attendance summary (read-only, same calendar as
                      Attendance > Monthly Summary, for the logged-in employee) -->
                 <div
-                    class="ess-chart-card ess-chart-card--wide"
+                    class="ess-chart-card pi-dashboard-card ess-chart-card--wide"
                     data-section="calendar"
-                >
+                 role="group" aria-labelledby="pi-ess-chart-title-1">
                     <div class="ess-chart-card__header">
                         <div>
-                            <div class="ess-chart-card__title">
+                            <div class="ess-chart-card__title pi-dashboard-card-title" id="pi-ess-chart-title-1">
                                 {% trans "Monthly Attendance Summary" %}
                             </div>
                         </div>
@@ -976,18 +980,18 @@
                         </div>
                     </div>
                     <div id="essMonthlySummary">
-                        <div class="ess-empty">{% trans "Loading..." %}</div>
+                        <div class="ess-empty pi-dashboard-empty">{% trans "Loading..." %}</div>
                     </div>
                 </div>
             </div>
             <!-- /ess-main -->
 
             <!-- Right sidebar -->
-            <div class="ess-sidebar">
+            <div class="ess-sidebar pi-dashboard-side">
                 <!-- Announcements -->
-                <div class="ess-info-panel">
+                <div class="ess-info-panel pi-dashboard-card">
                     <div class="ess-info-panel__header">
-                        <div class="ess-info-panel__title">
+                        <div class="ess-info-panel__title pi-dashboard-card-title">
                             {% trans "Announcements" %}
                             <span id="essAnnouncementsCount" class="ess-count-badge" hidden title="{% trans 'Announcements' %}">0</span>
                         </div>
@@ -998,10 +1002,10 @@
                 </div>
 
                 <!-- Interviews assigned to this employee (hidden when none) -->
-                <div class="ess-info-panel" id="essInterviewsPanel" style="display:none;">
+                <div class="ess-info-panel pi-dashboard-card" id="essInterviewsPanel" style="display:none;">
                     <div class="ess-info-panel__header">
                         <div class="ess-info-panel__heading">
-                            <div class="ess-info-panel__title">
+                            <div class="ess-info-panel__title pi-dashboard-card-title">
                                 {% trans "My Interviews" %}
                                 <span id="essInterviewsCount" class="ess-count-badge" hidden title="{% trans 'Assigned interviews' %}">0</span>
                             </div>
@@ -1012,10 +1016,10 @@
                 </div>
 
                 <!-- Birthdays: today and the rest of this month, all employees -->
-                <div class="ess-info-panel">
+                <div class="ess-info-panel pi-dashboard-card">
                     <div class="ess-info-panel__header">
                         <div class="ess-info-panel__heading">
-                            <div class="ess-info-panel__title">
+                            <div class="ess-info-panel__title pi-dashboard-card-title">
                                 {% trans "Birthdays" %}
                                 <span id="essBirthdaysCount" class="ess-count-badge" hidden title="{% trans 'Birthdays this month' %}">0</span>
                             </div>
@@ -1028,10 +1032,10 @@
                 </div>
 
                 <!-- Upcoming holidays -->
-                <div class="ess-info-panel">
+                <div class="ess-info-panel pi-dashboard-card">
                     <div class="ess-info-panel__header">
                         <div class="ess-info-panel__heading">
-                            <div class="ess-info-panel__title">
+                            <div class="ess-info-panel__title pi-dashboard-card-title">
                                 {% trans "Upcoming Holidays" %}
                                 <span id="essUpcomingCount" class="ess-count-badge" hidden title="{% trans 'Upcoming Holidays' %}">0</span>
                             </div>
@@ -1206,10 +1210,10 @@
             }
 
             function kpiCard(color, icon, label, value, sub, href) {
-                return '<a href="' + href + '" class="ess-kpi-card">' +
+                return '<a href="' + href + '" class="ess-kpi-card pi-dashboard-card">' +
                 '<div class="ess-kpi-card__icon ess-kpi-card__icon--' + color + '">' + icon + '</div>' +
                 '<div class="ess-kpi-card__label">' + label + '</div>' +
-                '<div class="ess-kpi-card__value">' + value + '</div>' +
+                '<div class="ess-kpi-card__value pi-dashboard-card-value">' + value + '</div>' +
                 '<div class="ess-kpi-card__sub">'   + sub   + '</div>' +
                 '</a>';
             }
@@ -1248,7 +1252,7 @@
                 })
                 .catch(function () {
                     document.getElementById('essMonthlySummary').innerHTML =
-                        '<div class="ess-empty">' + '{% trans "Unable to load attendance summary"|escapejs %}' + '</div>';
+                        '<div class="ess-empty pi-dashboard-empty">' + '{% trans "Unable to load attendance summary"|escapejs %}' + '</div>';
                 });
             }
 
