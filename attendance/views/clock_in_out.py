@@ -349,7 +349,7 @@ def clock_out_attendance_and_activity(employee, instant):
         if instant.date() == attendance.attendance_date or (
             attendance.is_night_shift() and instant.date() == next_day and instant.hour < 12
         ):
-            _, start, end = shift_schedule_today(
+            _minimum_hour, start, end = shift_schedule_today(
                 day=attendance.attendance_day, shift=attendance.shift_id
             )
             early_out(attendance, start, end, attendance.shift_id)

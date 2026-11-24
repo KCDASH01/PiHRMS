@@ -77,9 +77,11 @@ class PunchFixtures:
         record.is_validate_request = True
         record.save()
 
-    def manager_post(self, url, *args, data=None):
+    def manager_post(self, url, *args, data=None, **request_headers):
         self.client.force_login(self.admin)
-        return self.client.post(reverse(url, args=args), data or {})
+        return self.client.post(
+            reverse(url, args=args), data or {}, secure=True, **request_headers
+        )
 
 
 @override_settings(USE_TZ=True, TIME_ZONE="Asia/Kolkata")
@@ -109,6 +111,7 @@ class PunchConsistencyTests(PunchFixtures, TestCase):
         self.assertEqual(record.attendance_worked_hour, "02:01")
         self.assertEqual(record.activities()["count"], 2)
 
+    @override_settings(SECURE_SSL_REDIRECT=True)
     def test_individual_move_preserves_raw_history_and_isolates_next_session(self):
         record = self.clock_in(stamp(10, 54, 7))
         self.clock_out(stamp(11, 19, 15))
@@ -119,8 +122,11 @@ class PunchConsistencyTests(PunchFixtures, TestCase):
         corrected_date = MONDAY - timedelta(days=1)
         self.request_move(record, corrected_date)
 
-        response = self.manager_post("approve-validate-attendance-request", record.pk)
-        self.assertIn(response.status_code, (200, 302))
+        response = self.manager_post(
+            "approve-validate-attendance-request", record.pk, HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(response.status_code, 200, response.get("Location"))
+        self.assertNotIn("HX-Redirect", response)
         record.refresh_from_db()
         self.assertEqual(record.attendance_date, corrected_date)
         self.assertEqual(record.attendance_day.day, "sunday")
@@ -146,6 +152,7 @@ class PunchConsistencyTests(PunchFixtures, TestCase):
         self.assertEqual(new.activities()["count"], 1)
         self.assertEqual(AttendanceActivity.objects.count(), 3)
 
+    @override_settings(SECURE_SSL_REDIRECT=True)
     def test_bulk_approves_safe_move_and_preserves_conflicting_pending_request(self):
         moved = self.clock_in(stamp(9))
         self.clock_out(stamp(10))
@@ -154,16 +161,22 @@ class PunchConsistencyTests(PunchFixtures, TestCase):
         tuesday = MONDAY + timedelta(days=1)
         active = self.clock_in(stamp(9, day=tuesday))
         self.request_move(active, MONDAY)
+        punches = list(AttendanceActivity.objects.order_by("pk").values())
         response = self.manager_post(
             "bulk-approve-attendance-request", data={"ids": json.dumps([moved.pk, active.pk])}
         )
+        self.assertEqual(response.status_code, 200, response.get("Location"))
+        self.assertIn("X-Hlv-Bulk-Result", response)
         self.assertEqual(json.loads(response["X-Hlv-Bulk-Result"]), {"done": 1, "failed": 1})
         moved.refresh_from_db()
         active.refresh_from_db()
         self.assertFalse(moved.is_validate_request)
+        self.assertTrue(moved.is_validate_request_approved)
+        self.assertEqual(moved.attendance_date, MONDAY - timedelta(days=1))
+        self.assertEqual(moved.attendance_worked_hour, "01:00")
         self.assertTrue(active.is_validate_request)
         self.assertEqual(active.attendance_date, tuesday)
-        self.assertIsNone(AttendanceActivity.objects.get(attendance_date=tuesday).clock_out)
+        self.assertEqual(list(AttendanceActivity.objects.order_by("pk").values()), punches)
 
     def test_occupied_correction_date_changes_neither_pending_request_nor_punches(self):
         a = self.clock_in(stamp(9))
