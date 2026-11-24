@@ -119,7 +119,7 @@ def approve_attendance_correction(attendance_id, approver):
         raise
 
     shift = attendance.shift_id
-    _, start, end = shift_schedule_today(attendance.attendance_day, shift)
+    _minimum_hour, start, end = shift_schedule_today(attendance.attendance_day, shift)
     if attendance.attendance_clock_in is not None:
         late_come(attendance, start, end, shift)
     else:
