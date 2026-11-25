@@ -140,6 +140,18 @@ class AttendanceRequestAuthorizationTests(TestCase):
             reporting_manager_id=self.manager
         )
         outside.refresh_from_db()
+        # The fixture updates work info after linking the user and employee.
+        self.manager_user.refresh_from_db()
+        self.assertEqual(
+            self.manager_user.employee_get.employee_work_info.company_id_id,
+            self.company.pk,
+        )
+        self.assertEqual(
+            self.report.employee_work_info.reporting_manager_id_id, self.manager.pk
+        )
+        self.assertEqual(
+            outside.employee_work_info.reporting_manager_id_id, self.manager.pk
+        )
         request = RequestFactory().post("/")
         request.user = self.manager_user
         self.assertTrue(
@@ -183,9 +195,11 @@ class AttendanceRequestAuthorizationTests(TestCase):
             clock_in_date=DAY, clock_in=time(9),
             clock_out_date=DAY, clock_out=time(10),
         )
-        AttendanceLateComeEarlyOut.objects.create(
-            attendance_id=record, employee_id=self.report, type="early_out"
+        exception = AttendanceLateComeEarlyOut.objects.create(
+            attendance_id=record, type="early_out"
         )
+        exception.refresh_from_db()
+        self.assertEqual(exception.employee_id_id, self.report.pk)
         original = AttendanceActivity.objects.values().get(pk=punch.pk)
         original_history = punch.history.count()
         with self.assertRaises(ProtectedError):
