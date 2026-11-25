@@ -18,6 +18,10 @@ from attendance.forms import (
     BulkAttendanceRequestForm,
     NewRequestForm,
 )
+from attendance.methods.request_access import (
+    can_access_request_employee,
+    find_request_employee,
+)
 from attendance.models import Attendance
 from base.methods import (
     choosesubordinates,
@@ -26,7 +30,8 @@ from base.methods import (
     is_reportingmanager,
 )
 from employee.models import Employee
-from horilla_views.cbv_methods import EmployeeScopeMixin, login_required
+from horilla.methods import handle_no_permission
+from horilla_views.cbv_methods import login_required
 from horilla_views.generic.cbv.views import (
     HorillaDetailedView,
     HorillaFormView,
@@ -492,14 +497,33 @@ class AttendanceListTabDetailView(HorillaDetailedView):
         self.action_method = "detail_actions"
 
 
+class AttendanceRequestFormAccess:
+    def dispatch(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        if pk is not None:
+            target = Attendance.find(pk)
+            if target is None or not can_access_request_employee(
+                request, target.employee_id, "attendance.change_attendance", allow_self=True
+            ):
+                return handle_no_permission(request)
+        for employee_id in dict.fromkeys(request.POST.getlist("employee_id")):
+            if not employee_id:
+                continue
+            if not can_access_request_employee(
+                request,
+                find_request_employee(employee_id),
+                "attendance.change_attendance",
+                allow_self=True,
+            ):
+                return handle_no_permission(request)
+        return super().dispatch(request, *args, **kwargs)
+
+
 @method_decorator(login_required, name="dispatch")
-class NewAttendanceRequestFormView(EmployeeScopeMixin, HorillaFormView):
+class NewAttendanceRequestFormView(AttendanceRequestFormAccess, HorillaFormView):
     """
     form view for create  attendance request
     """
-
-    scope_perm = "attendance.change_attendance"
-    scope_include_self = True
 
     form_class = NewRequestForm
     model = Attendance
@@ -542,7 +566,7 @@ class NewAttendanceRequestFormView(EmployeeScopeMixin, HorillaFormView):
 
 
 @method_decorator(login_required, name="dispatch")
-class BulkAttendanceRequestFormView(HorillaFormView):
+class BulkAttendanceRequestFormView(AttendanceRequestFormAccess, HorillaFormView):
     """
     form view for create bulk  attendance request
     """
@@ -593,7 +617,7 @@ class BulkAttendanceRequestFormView(HorillaFormView):
 
 
 @method_decorator(login_required, name="dispatch")
-class UpdateAttendanceRequestFormView(HorillaFormView):
+class UpdateAttendanceRequestFormView(AttendanceRequestFormAccess, HorillaFormView):
     """
     form view for update attendance request
     """

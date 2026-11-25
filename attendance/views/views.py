@@ -16,7 +16,7 @@ import uuid
 
 from base.import_template_data import import_template_frame, write_import_xlsx
 from horilla.http.response import HorillaRedirect, with_bulk_result
-from horilla.methods import remove_dynamic_url
+from horilla.methods import handle_no_permission, remove_dynamic_url
 from horilla.posted_ids import posted_ids
 
 logger = logging.getLogger(__name__)
@@ -76,6 +76,7 @@ from attendance.forms import (
     LateComeEarlyOutExportForm,
     NewRequestForm,
 )
+from attendance.methods.request_access import can_access_request_employee
 from attendance.methods.utils import (
     Request,
     attendance_day_checking,
@@ -2480,6 +2481,11 @@ def create_attendancerequest_comment(request, attendance_id):
     if not attendance:
         return HorillaRedirect(request, message=_("Attendance not found."))
 
+    if attendance is None or not can_access_request_employee(
+        request, attendance.employee_id, "attendance.view_attendance", allow_self=True
+    ):
+        return handle_no_permission(request)
+
     emp = request.user.employee_get
     form = AttendanceRequestCommentForm(
         initial={"employee_id": emp.id, "request_id": attendance_id}
@@ -2593,6 +2599,12 @@ def view_attendancerequest_comment(request, attendance_id):
     """
     This method is used to show Attendance request comments
     """
+    attendance = Attendance.find(attendance_id)
+    if attendance is None or not can_access_request_employee(
+        request, attendance.employee_id, "attendance.view_attendance", allow_self=True
+    ):
+        return handle_no_permission(request)
+
     comments = AttendanceRequestComment.objects.filter(
         request_id=attendance_id
     ).order_by("-created_at")
@@ -2602,8 +2614,12 @@ def view_attendancerequest_comment(request, attendance_id):
 
     if request.FILES:
         files = request.FILES.getlist("files")
-        comment_id = request.GET["comment_id"]
-        comment = AttendanceRequestComment.objects.get(id=comment_id)
+        comment = AttendanceRequestComment.find(request.GET.get("comment_id"))
+        if (
+            comment is None
+            or comment.request_id_id != attendance.pk
+        ):
+            return handle_no_permission(request)
         attachments = []
         for file in files:
             file_instance = AttendanceRequestFile()
@@ -2621,6 +2637,7 @@ def view_attendancerequest_comment(request, attendance_id):
 
 @login_required
 @hx_request_required
+@require_http_methods(["POST"])
 def delete_attendancerequest_comment(request, comment_id):
     """
     This method is used to delete Attendance request comments
@@ -2631,28 +2648,11 @@ def delete_attendancerequest_comment(request, comment_id):
             request, message=_("No Comment found matching the query.")
         )
 
-    # Authorize against the comment's parent attendance request using the
-    # same scope request_attendance_view() uses to list requests: the
-    # requester's own record, a subordinate's record they're an authorized
-    # manager over, or any record if they hold the global view permission.
-    # Comment creation isn't restricted to just the owner/manager (see the
-    # notify.send() branches above this view), so deletion can't be
-    # narrowed to "comment author only" without blocking legitimate
-    # moderation by an authorized manager/HR.
-    authorized_requests = filtersubordinates(
-        request=request,
-        perm="attendance.view_attendance",
-        queryset=Attendance.objects.filter(pk=comment.request_id_id),
-    )
-    authorized_requests = authorized_requests | Attendance.objects.filter(
-        pk=comment.request_id_id,
-        employee_id__employee_user_id=request.user,
-    )
-    if not authorized_requests.exists():
-        return HorillaRedirect(
-            request,
-            message=_("You don't have permission to delete this comment."),
-        )
+    attendance = Attendance.find(comment.request_id_id)
+    if attendance is None or not can_access_request_employee(
+        request, attendance.employee_id, "attendance.view_attendance", allow_self=True
+    ):
+        return handle_no_permission(request)
 
     script = ""
     comment.delete()
@@ -2662,15 +2662,34 @@ def delete_attendancerequest_comment(request, comment_id):
 
 @login_required
 @hx_request_required
+@require_http_methods(["POST"])
 def delete_comment_file(request):
     """
     Used to delete attachment
     """
-    script = ""
-    ids = request.GET.getlist("ids")
-    AttendanceRequestFile.objects.filter(id__in=ids).delete()
-    messages.success(request, _("File deleted successfully"))
-    return HttpResponse(script)
+    attendance = Attendance.find(request.GET.get("request_id"))
+    if attendance is None or not can_access_request_employee(
+        request, attendance.employee_id, "attendance.view_attendance", allow_self=True
+    ):
+        return handle_no_permission(request)
+    # File IDs alone do not identify an authorized attachment. Do not delete
+    # a legacy file that is also linked to another attendance request.
+    comments = AttendanceRequestComment.objects.filter(request_id=attendance)
+    removed = False
+    with transaction.atomic():
+        for file_id in request.GET.getlist("ids"):
+            attachment = AttendanceRequestFile.find(file_id)
+            if attachment is None or not comments.filter(files=attachment).exists():
+                continue
+            if AttendanceRequestComment.objects.filter(files=attachment).exclude(
+                request_id=attendance
+            ).exists():
+                continue
+            attachment.delete()
+            removed = True
+    if removed:
+        messages.success(request, _("File deleted successfully"))
+    return HttpResponse("")
 
 
 @login_required

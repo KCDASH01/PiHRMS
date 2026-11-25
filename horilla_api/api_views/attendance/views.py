@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from django import template
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMessage
 from django.db.models import Case, CharField, F, Value, When
 from django.http import QueryDict
@@ -17,6 +18,10 @@ from rest_framework.views import APIView
 
 from attendance.methods.corrections import approve_attendance_correction
 from attendance.methods.punches import PunchConflict, request_punch_time
+from attendance.methods.request_access import (
+    can_access_request_employee,
+    find_request_employee,
+)
 from attendance.methods.utils import employee_exists
 from attendance.models import (
     Attendance,
@@ -36,8 +41,8 @@ from attendance.views.views import *
 from base.backends import ConfiguredEmailBackend
 from base.methods import generate_pdf, sanitize_mail_template_body
 from base.models import HorillaMailTemplate
-from base.views import is_reportingmanger
 from employee.filters import EmployeeFilter
+from employee.models import Employee
 from horilla_api.api_methods.base.pagination import HorillaPageNumberPagination
 
 from ...api_decorators.base.decorators import (
@@ -472,6 +477,14 @@ class AttendanceRequestView(APIView):
     def post(self, request):
         from attendance.forms import NewRequestForm
 
+        employee_id = request.data.get("employee_id")
+        if employee_id and not can_access_request_employee(
+            request,
+            find_request_employee(employee_id),
+            "attendance.change_attendance",
+            allow_self=True,
+        ):
+            return Response({"error": _("You don't have permission")}, status=403)
         form = NewRequestForm(data=request.data)
         if form.is_valid():
             work_type = form.cleaned_data.get("work_type_id")
@@ -497,14 +510,9 @@ class AttendanceRequestView(APIView):
     def put(self, request, pk):
         from attendance.forms import AttendanceRequestForm
 
-        attendance = Attendance.objects.get(id=pk)
-        # This view carried no permission check at all beyond being signed
-        # in -- any authenticated user could file a correction request
-        # against any other employee's attendance record by guessing its id.
-        if not (
-            attendance.employee_id.employee_user_id == request.user
-            or is_reportingmanger(request, attendance)
-            or request.user.has_perm("attendance.change_attendance")
+        attendance = Attendance.find(pk)
+        if attendance is None or not can_access_request_employee(
+            request, attendance.employee_id, "attendance.change_attendance", allow_self=True
         ):
             return Response({"error": _("You don't have permission")}, status=403)
         form = AttendanceRequestForm(data=request.data, instance=attendance)
@@ -543,10 +551,17 @@ class AttendanceRequestApproveView(APIView):
 
     @approver_permission_required(Attendance, "attendance.change_attendance")
     def put(self, request, pk):
+        target = Attendance.find(pk)
+        if target is None or not can_access_request_employee(
+            request, target.employee_id, "attendance.change_attendance"
+        ):
+            return Response({"error": _("You don't have permission")}, status=403)
         try:
             attendance = approve_attendance_correction(
-                pk, getattr(request.user, "employee_get", None)
+                pk, getattr(request.user, "employee_get", None), request=request
             )
+        except PermissionDenied:
+            return Response({"error": _("You don't have permission")}, status=403)
         except PunchConflict as error:
             return Response({"error": error.message}, status=400)
         if attendance is None:
@@ -565,28 +580,18 @@ class AttendanceRequestCancelView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, pk):
-        try:
-            attendance = Attendance.objects.get(id=pk)
-            if (
-                attendance.employee_id.employee_user_id == request.user
-                # is_reportingmanager(request) checked "is this caller a
-                # reporting manager of anyone", not "of this attendance's
-                # employee" -- any manager anywhere in the company could
-                # cancel any other employee's attendance validation request.
-                or is_reportingmanger(request, attendance)
-                or request.user.has_perm("attendance.change_attendance")
-            ):
-                attendance.is_validate_request_approved = False
-                attendance.is_validate_request = False
-                attendance.request_description = None
-                attendance.requested_data = None
-                attendance.request_type = None
-
-                attendance.save()
-                if attendance.request_type == "create_request":
-                    attendance.delete()
-        except Exception as E:
-            return Response({"error": str(E)}, status=400)
+        attendance = Attendance.find(pk)
+        if attendance is None or not can_access_request_employee(
+            request, attendance.employee_id, "attendance.change_attendance", allow_self=True
+        ):
+            return Response({"error": _("You don't have permission")}, status=403)
+        if attendance.is_validate_request:
+            attendance.is_validate_request_approved = False
+            attendance.is_validate_request = False
+            attendance.request_description = None
+            attendance.requested_data = None
+            attendance.request_type = None
+            attendance.save()
         return Response({"status": "success"}, status=200)
 
 

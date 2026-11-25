@@ -3,12 +3,13 @@
 import copy
 import json
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
 
 from attendance.methods.punches import PunchConflict, lock_punches, open_sessions
+from attendance.methods.request_access import can_access_request_employee
 from attendance.methods.utils import month_date_range, shift_schedule_today
 from attendance.methods.work_record_sync import detach_moved_attendance
 from attendance.models import Attendance, AttendanceOverTime
@@ -61,7 +62,7 @@ def _rebuild_month(attendance, *, rebuild_overtime):
 
 
 @transaction.atomic
-def approve_attendance_correction(attendance_id, approver):
+def approve_attendance_correction(attendance_id, approver, *, request=None):
     """Approve the pending version once under the same lock as the punch flow."""
     original = Attendance.objects.filter(pk=attendance_id).first()
     if original is None:
@@ -73,6 +74,10 @@ def approve_attendance_correction(attendance_id, approver):
     ).first()
     if attendance is None:
         return None
+    if request is not None and not can_access_request_employee(
+        request, employee, "attendance.change_attendance"
+    ):
+        raise PermissionDenied
 
     previous = copy.copy(attendance)
     try:

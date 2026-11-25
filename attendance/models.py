@@ -1078,11 +1078,8 @@ class Attendance(HorillaModel):
         return serialized_data
 
     def delete(self, *args, **kwargs):
-        # Custom delete logic
-        # Perform additional operations before deleting the object
-        with contextlib.suppress(Exception):
-            attendance_sessions(self).delete()
-        # Call the superclass delete() method to delete the object
+        # Raw punches are independent source records. A daily summary's
+        # inferred session group is not authority to delete them.
         super().delete(*args, **kwargs)
 
         # Rebuild after the row is gone. Doing it before left the deleted

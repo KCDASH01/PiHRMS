@@ -10,6 +10,7 @@ from datetime import date, datetime, time
 from urllib.parse import parse_qs
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db.models import ProtectedError, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -28,6 +29,7 @@ from attendance.forms import (
 )
 from attendance.methods.corrections import approve_attendance_correction
 from attendance.methods.punches import PunchConflict
+from attendance.methods.request_access import can_access_request_employee
 from attendance.methods.utils import get_diff_dict, paginator_qry
 from attendance.models import (
     Attendance,
@@ -39,7 +41,6 @@ from base.methods import (
     eval_validate,
     filtersubordinates,
     get_key_instances,
-    is_reportingmanager,
 )
 from base.models import EmployeeShift
 from employee.models import Employee
@@ -50,6 +51,7 @@ from horilla.decorators import (
     permission_required,
 )
 from horilla.http.response import HorillaRedirect, with_bulk_result
+from horilla.methods import handle_no_permission
 from notifications.signals import notify
 
 
@@ -304,6 +306,11 @@ def attendance_request_changes(request, attendance_id):
             request, message=_("No Attendance found matching the query.")
         )
 
+    if not can_access_request_employee(
+        request, attendance.employee_id, "attendance.change_attendance", allow_self=True
+    ):
+        return handle_no_permission(request)
+
     if request.GET.get("previous_url"):
         form = AttendanceRequestForm(initial=request.GET.dict())
     else:
@@ -397,6 +404,11 @@ def validate_attendance_request(request, attendance_id):
             request, message=_("No Attendance found matching the query.")
         )
 
+    if not can_access_request_employee(
+        request, attendance.employee_id, "attendance.view_attendance", allow_self=True
+    ):
+        return handle_no_permission(request)
+
     first_dict = attendance.serialize()
     empty_data = {
         "employee_id": None,
@@ -447,8 +459,17 @@ def approve_validate_attendance_request(request, attendance_id):
     """
     This method is used to validate the attendance requests
     """
+    target = Attendance.find(attendance_id)
+    if target is None or not can_access_request_employee(
+        request, target.employee_id, "attendance.change_attendance"
+    ):
+        return handle_no_permission(request)
     try:
-        attendance = approve_attendance_correction(attendance_id, request.user.employee_get)
+        attendance = approve_attendance_correction(
+            attendance_id, request.user.employee_get, request=request
+        )
+    except PermissionDenied:
+        return handle_no_permission(request)
     except PunchConflict as error:
         return HorillaRedirect(request, message=error.message)
     if attendance is None:
@@ -515,11 +536,11 @@ def cancel_attendance_request(request, attendance_id):
     """
     try:
         attendance = Attendance.objects.get(id=attendance_id)
-        if (
-            attendance.employee_id.employee_user_id == request.user
-            or is_reportingmanager(request)
-            or request.user.has_perm("attendance.change_attendance")
+        if not can_access_request_employee(
+            request, attendance.employee_id, "attendance.change_attendance", allow_self=True
         ):
+            return handle_no_permission(request)
+        if attendance.is_validate_request:
             attendance.is_validate_request_approved = False
             attendance.is_validate_request = False
             attendance.request_description = None
@@ -527,11 +548,7 @@ def cancel_attendance_request(request, attendance_id):
             attendance.request_type = None
 
             attendance.save()
-            if attendance.request_type == "create_request":
-                attendance.delete()
-                messages.success(request, _("The requested attendance is removed."))
-            else:
-                messages.success(request, _("Attendance request has been rejected"))
+            messages.success(request, _("Attendance request has been rejected"))
             employee = attendance.employee_id
             notify.send(
                 request.user,
@@ -605,27 +622,39 @@ def select_all_filter_attendance_request(request):
     return JsonResponse(context)
 
 
+def _bulk_request_ids(request):
+    try:
+        submitted = json.loads(request.POST.get("ids", "[]"))
+    except ValueError:
+        return ()
+    if not isinstance(submitted, list):
+        return ()
+    return tuple(dict.fromkeys(str(value) for value in submitted))
+
+
 @login_required
 @manager_can_enter("attendance.change_attendance")
 def bulk_approve_attendance_request(request):
     """
     This method is used to validate the attendance requests
     """
-    ids = json.loads(request.POST.get("ids", "[]"))
-    filtered_ids = []
-    if not ids and len(ids) <= 0:
+    ids = _bulk_request_ids(request)
+    if not ids:
         messages.error(request, _("No attendance request selected"))
         return redirect(reverse("request-attendance-view"))
     done = 0
     for attendance_id in ids:
-        attendance = Attendance.objects.filter(id=attendance_id).first()
-        if attendance and attendance.employee_id != request.user.employee_get:
-            filtered_ids.append(attendance_id)
-    if request.user.is_superuser:
-        filtered_ids = ids
-    for attendance_id in filtered_ids:
+        target = Attendance.find(attendance_id)
+        if target is None or not can_access_request_employee(
+            request, target.employee_id, "attendance.change_attendance"
+        ):
+            continue
         try:
-            attendance = approve_attendance_correction(attendance_id, request.user.employee_get)
+            attendance = approve_attendance_correction(
+                attendance_id, request.user.employee_get, request=request
+            )
+        except PermissionDenied:
+            continue
         except PunchConflict as error:
             messages.error(request, error.message)
             continue
@@ -665,7 +694,7 @@ def bulk_approve_attendance_request(request):
     # Everything selected that wasn't approved (missing, own request, already
     # processed) counts as failed. The browser shows these counts in a result
     # dialog instead of the per-record toasts.
-    failed = max(len(set(map(str, ids))) - done, 0)
+    failed = max(len(ids) - done, 0)
     return with_bulk_result(HttpResponse("success"), done, failed)
 
 
@@ -675,50 +704,44 @@ def bulk_reject_attendance_request(request):
     """
     This method is used to delete bulk attendance request
     """
-    ids = json.loads(request.POST.get("ids", "[]"))
-    if not ids and len(ids) <= 0:
+    ids = _bulk_request_ids(request)
+    if not ids:
         messages.error(request, _("No attendance request selected"))
         return redirect(reverse("request-attendance-view"))
     done = 0
     for attendance_id in ids:
-        try:
-            attendance = Attendance.objects.get(id=attendance_id)
-            if not attendance.is_validate_request:
-                continue  # already approved / rejected
-            if (
-                attendance.employee_id.employee_user_id == request.user
-                or is_reportingmanager(request)
-                or request.user.has_perm("attendance.change_attendance")
-            ):
-                attendance.is_validate_request_approved = False
-                attendance.is_validate_request = False
-                attendance.request_description = None
-                attendance.requested_data = None
-                attendance.request_type = None
-                attendance.save()
-                if attendance.request_type == "create_request":
-                    attendance.delete()
-                    messages.success(request, _("The requested attendance is removed."))
-                else:
-                    messages.success(
-                        request, _("The requested attendance is rejected.")
-                    )
-                done += 1
-                employee = attendance.employee_id
-                notify.send(
-                    request.user,
-                    recipient=employee.employee_user_id,
-                    verb=gettext_noop(
-                        "Your attendance request for %(attendance_date)s is rejected"
-                    ),
-                    verb_params={"attendance_date": str(attendance.attendance_date)},
-                    icon="close-circle-outline",
-                    redirect=reverse("request-attendance-view")
-                    + f"?id={attendance.id}",
-                )
-        except (Attendance.DoesNotExist, OverflowError):
-            messages.error(request, _("Attendance request not found"))
-    failed = max(len(set(map(str, ids))) - done, 0)
+        attendance = Attendance.find(attendance_id)
+        if attendance is None or not attendance.is_validate_request:
+            continue  # already approved / rejected
+        if not can_access_request_employee(
+            request, attendance.employee_id, "attendance.change_attendance"
+        ):
+            continue
+        if not can_access_request_employee(
+            request, attendance.employee_id, "attendance.delete_attendance"
+        ):
+            continue
+        attendance.is_validate_request_approved = False
+        attendance.is_validate_request = False
+        attendance.request_description = None
+        attendance.requested_data = None
+        attendance.request_type = None
+        attendance.save()
+        messages.success(request, _("The requested attendance is rejected."))
+        done += 1
+        employee = attendance.employee_id
+        notify.send(
+            request.user,
+            recipient=employee.employee_user_id,
+            verb=gettext_noop(
+                "Your attendance request for %(attendance_date)s is rejected"
+            ),
+            verb_params={"attendance_date": str(attendance.attendance_date)},
+            icon="close-circle-outline",
+            redirect=reverse("request-attendance-view")
+            + f"?id={attendance.id}",
+        )
+    failed = max(len(ids) - done, 0)
     return with_bulk_result(HttpResponse("success"), done, failed)
 
 
@@ -733,6 +756,11 @@ def edit_validate_attendance(request, attendance_id):
         return HorillaRedirect(
             request, message=_("No Attendance found matching the query.")
         )
+
+    if not can_access_request_employee(
+        request, attendance.employee_id, "attendance.change_attendance", allow_self=True
+    ):
+        return handle_no_permission(request)
 
     initial = attendance.serialize()
     if request.GET.get("previous_url"):
