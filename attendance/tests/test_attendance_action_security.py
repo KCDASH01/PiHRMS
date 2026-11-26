@@ -17,7 +17,7 @@ from attendance.models import (
 )
 from base.models import CompanyGroupAssignment, EmployeeShift, EmployeeShiftDay
 from employee.models import EmployeeWorkInformation
-from horilla.horilla_middlewares import set_selected_company
+from horilla.horilla_middlewares import ThreadLocalMiddleware, set_selected_company
 from horilla.testkit import make_company, make_employee, make_user
 from horilla_api.api_views.attendance.views import (
     AttendanceActivityView, AttendanceView, LateComeEarlyOutView,
@@ -85,7 +85,8 @@ class AttendanceActionSecurityTests(TestCase):
     def api(self, view, verb, data=None, **kwargs):
         request = getattr(APIRequestFactory(), verb)("/attendance/", data or {})
         force_authenticate(request, self.user)
-        return view.as_view()(request, **kwargs)
+        dispatch = view.as_view()
+        return ThreadLocalMiddleware(lambda request: dispatch(request, **kwargs))(request)
 
     def post(self, name, data=None, *, args=(), query=""):
         return self.client.post(
@@ -130,10 +131,18 @@ class AttendanceActionSecurityTests(TestCase):
         self.grant(self.other_company, "view_attendance")
         set_selected_company("all")
         original = self.snapshot()
-        for pk in (foreign.pk, home.pk):
-            response = self.api(AttendanceView, "put", self.payload(self.external, "02:00"), pk=pk)
-            self.assertEqual(response.status_code, 403)
-            self.assertEqual(self.snapshot(), original)
+        original_history_count = Attendance.history.count()
+        for forbidden_target, record, employee in (
+            ("source", foreign, self.report),
+            ("destination", home, self.external),
+        ):
+            with self.subTest(forbidden_target=forbidden_target):
+                response = self.api(
+                    AttendanceView, "put", self.payload(employee, "02:00"), pk=record.pk
+                )
+                self.assertEqual(response.status_code, 403)
+                self.assertEqual(self.snapshot(), original)
+                self.assertEqual(Attendance.history.count(), original_history_count)
         response = self.api(AttendanceView, "put", self.payload(self.report, "02:00"), pk=home.pk)
         self.assertEqual(response.status_code, 200, response.data)
         home.refresh_from_db()
