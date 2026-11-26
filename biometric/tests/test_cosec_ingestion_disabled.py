@@ -5,10 +5,12 @@ from unittest.mock import Mock, patch
 from uuid import uuid4
 
 from django.test import RequestFactory, SimpleTestCase, override_settings
+from django.urls import reverse
 
 from biometric import views
 from biometric.cbv.biometric import BiometricSheduleForm
 from biometric.cosec import COSECBiometric
+from horilla.horilla_middlewares import ThreadLocalMiddleware
 
 
 @override_settings(COSEC_ATTENDANCE_INGESTION_ENABLED=False)
@@ -24,10 +26,10 @@ class CosecIngestionDisabledTests(SimpleTestCase):
             bio_password="fixture",
         )
 
-    def operator_request(self, *, post=False, data=None):
+    def operator_request(self, *, post=False, data=None, path="/biometric/"):
         factory = RequestFactory()
         make_request = factory.post if post else factory.get
-        request = make_request("/biometric/", data or {}, HTTP_HX_REQUEST="true")
+        request = make_request(path, data or {}, HTTP_HX_REQUEST="true")
         request.user = SimpleNamespace(
             is_authenticated=True,
             is_active=True,
@@ -63,21 +65,39 @@ class CosecIngestionDisabledTests(SimpleTestCase):
         cursor.assert_not_called()
 
     def test_schedule_creation_and_existing_job_are_disabled(self):
-        request = self.operator_request(post=True, data={"scheduler_duration": "00:01"})
-        form = Mock(instance=SimpleNamespace(pk=self.device.id))
-        view = BiometricSheduleForm()
-        view.request = request
-        view.form = form
+        request = self.operator_request(
+            post=True,
+            data={"scheduler_duration": "00:01"},
+            path=reverse("biometric-device-schedule", kwargs={"pk": self.device.id}),
+        )
+        device_row = views.BiometricDevices(
+            id=self.device.id,
+            name="COSEC test device",
+            machine_type="cosec",
+            machine_ip=self.device.machine_ip,
+            port=self.device.port,
+            bio_username=self.device.bio_username,
+            bio_password=self.device.bio_password,
+        )
+        schedule_view = ThreadLocalMiddleware(
+            lambda request: BiometricSheduleForm.as_view()(request, pk=self.device.id)
+        )
         with (
             patch("base.models.BiometricAttendance.objects.filter") as installed,
-            patch.object(views.BiometricDevices.objects, "get", return_value=self.device),
+            patch.object(views.BiometricDevices.objects, "filter") as devices,
+            patch.object(
+                views.BiometricDevices.objects, "get", return_value=self.device
+            ) as load_device,
             patch("biometric.cbv.biometric.BackgroundScheduler") as scheduler,
             patch.object(views, "BackgroundScheduler") as legacy_scheduler,
             patch.object(views.BiometricDevices, "find") as load,
             patch.object(views, "cosec_biometric_attendance_logs") as poll,
         ):
             installed.return_value.first.return_value = None
-            self.assertEqual(view.form_valid(form).status_code, 403)
+            devices.return_value.first.return_value = device_row
+            response = schedule_view(request)
+            self.assertEqual(response.status_code, 403)
+            load_device.assert_called_once_with(id=self.device.id)
             self.assertEqual(views.biometric_device_schedule(request, self.device.id).status_code, 403)
             views.cosec_biometric_attendance_scheduler(self.device.id)
         scheduler.assert_not_called()
