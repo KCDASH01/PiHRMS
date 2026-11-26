@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.middleware.csrf import get_token
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
@@ -86,7 +87,8 @@ class AttendanceActionSecurityTests(TestCase):
         request = getattr(APIRequestFactory(), verb)("/attendance/", data or {})
         force_authenticate(request, self.user)
         dispatch = view.as_view()
-        return ThreadLocalMiddleware(lambda request: dispatch(request, **kwargs))(request)
+        handler = ThreadLocalMiddleware(lambda request: dispatch(request, **kwargs))
+        return SessionMiddleware(handler)(request)
 
     def post(self, name, data=None, *, args=(), query=""):
         return self.client.post(
