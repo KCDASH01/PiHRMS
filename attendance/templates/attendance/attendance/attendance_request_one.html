@@ -195,13 +195,15 @@
                                 <ion-icon name="ban-outline"></ion-icon>
                             </a>
                         {% elif minot <= attendance_request.overtime_second %}
-                            <a
-                                href="{% url 'approve-overtime' attendance_request.id %}"
+                            <button type="button"
+                                hx-post="{% url 'approve-overtime' attendance_request.id %}"
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                hx-swap="none"
                                 class="oh-btn oh-btn--success w-50"
                                 title='{% trans "Approve" %}'
                             >
                                 <ion-icon name="checkmark-done-outline"></ion-icon>
-                            </a>
+                            </button>
                         {% elif attendance_request.overtime_second >= 60 %}
                             <a
                                 type="submit"
@@ -232,11 +234,12 @@
                                 <ion-icon class="me-1" name="checkmark-outline"></ion-icon>
                             </a>
                             <button
-                                type="submit"
+                                type="button"
                                 data-ot-approve-id="{{attendance_request.id}}"
                                 hidden
-                                href=""
-                                onclick="window.location.href='{% url 'approve-overtime' attendance_request.id %}'"
+                                hx-post="{% url 'approve-overtime' attendance_request.id %}"
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                hx-swap="none"
                                 title="{% trans 'Approve Overtime' %}"
                                 class="oh-btn oh-btn--success w-100"
                             >

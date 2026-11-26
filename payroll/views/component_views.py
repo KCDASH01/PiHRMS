@@ -18,6 +18,7 @@ import pandas as pd
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, QueryDict
 from django.shortcuts import redirect, render
@@ -26,6 +27,8 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext_noop
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, Side
 from openpyxl.utils import get_column_letter
@@ -1106,9 +1109,12 @@ def view_individual_payslip(request, employee_id, start_date, end_date):
     )
 
 
+@require_POST
 @login_required
+@csrf_protect
 @manager_can_enter("attendance.change_attendance")
 @hx_request_required
+@transaction.atomic
 def payslip_pending_attendance_action(request):
     """
     Validate or approve overtime for a single attendance record directly
@@ -1118,14 +1124,19 @@ def payslip_pending_attendance_action(request):
     if not apps.is_installed("attendance"):
         return HttpResponse("")
 
+    from attendance.methods.request_access import can_approve_daily_attendance
+
     attendance_id = request.POST.get("attendance_id")
     action = request.POST.get("action")
 
     Attendance = get_horilla_model_class(app_label="attendance", model="attendance")
     try:
-        attendance = Attendance.objects.get(pk=attendance_id)
+        attendance = Attendance.objects.select_for_update(of=("self",)).get(pk=attendance_id)
     except (Attendance.DoesNotExist, ValueError, TypeError):
         return HttpResponse("")
+
+    if not can_approve_daily_attendance(request, attendance.employee_id):
+        return handle_no_permission(request)
 
     if action == "validate":
         attendance.attendance_validated = True

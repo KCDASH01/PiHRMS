@@ -7,6 +7,7 @@ from typing import Any
 
 import django_filters
 from django.contrib import messages
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import resolve, reverse, reverse_lazy
@@ -17,6 +18,10 @@ from attendance.cbv.attendance_activity import AttendanceActivityListView
 from attendance.cbv.attendance_tab import AttendanceTabView
 from attendance.filters import AttendanceFilters
 from attendance.forms import AttendanceExportForm, AttendanceForm, AttendanceUpdateForm
+from attendance.methods.request_access import (
+    can_access_request_employee,
+    can_write_attendance_employees,
+)
 from attendance.models import Attendance, AttendanceValidationCondition, strtime_seconds
 from base.decorators import manager_can_enter
 from base.filters import PenaltyFilter
@@ -32,8 +37,8 @@ from employee.cbv.employees import EmployeeCard, EmployeeNav, EmployeesList
 from employee.filters import EmployeeFilter
 from employee.models import Employee
 from horilla.filters import HorillaFilterSet
+from horilla.methods import handle_no_permission
 from horilla_views.cbv_methods import (
-    EmployeeScopeMixin,
     hx_request_required,
     login_required,
     render_template,
@@ -700,18 +705,22 @@ class ValidatedDetailView(GenericAttendancesDetailView):
 
 @method_decorator(login_required, name="dispatch")
 @method_decorator(manager_can_enter("attendance.add_attendance"), name="dispatch")
-class AttendancesFormView(EmployeeScopeMixin, HorillaFormView):
+class AttendancesFormView(HorillaFormView):
     """
     form view
     """
-
-    scope_perm = "attendance.add_attendance"
-    scope_include_self = False
 
     form_class = AttendanceForm
     model = Attendance
     new_display_title = _("Add Attendances")
     template_name = "requests/attendance/attendance_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == "POST" and not can_write_attendance_employees(
+            request, request.POST.getlist("employee_id"), "attendance.add_attendance"
+        ):
+            return handle_no_permission(request)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -745,6 +754,23 @@ class AttendanceUpdateFormView(HorillaFormView):
     model = Attendance
     form_class = AttendanceUpdateForm
     template_name = "requests/attendance/attendance_form.html"
+
+    @transaction.atomic
+    def dispatch(self, request, *args, **kwargs):
+        records = Attendance.objects.filter(pk=kwargs.get("pk"))
+        if request.method == "POST":
+            records = records.select_for_update(of=("self",))
+        attendance = records.first()
+        permission = "attendance.change_attendance"
+        if attendance is None or not can_access_request_employee(
+            request, attendance.employee_id, permission, allow_self_with_permission=True
+        ):
+            return handle_no_permission(request)
+        if request.method == "POST" and not can_write_attendance_employees(
+            request, request.POST.getlist("employee_id"), permission
+        ):
+            return handle_no_permission(request)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

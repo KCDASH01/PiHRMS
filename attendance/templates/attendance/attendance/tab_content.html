@@ -982,15 +982,17 @@
                                                 <ion-icon class="me-1" name="checkmark-outline"></ion-icon>
                                             </a>
                                         {% elif minot <= attendance.overtime_second %}
-                                            <a
-                                                type="submit"
-                                                href="{% url 'approve-overtime' attendance.id %}"
+                                            <button
+                                                type="button"
+                                                hx-post="{% url 'approve-overtime' attendance.id %}"
+                                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                                hx-swap="none"
                                                 title="{% trans 'Approve Overtime' %}"
                                                 class="oh-btn oh-btn--success w-100"
                                                 onclick="event.stopPropagation()"
                                             >
                                                 <ion-icon class="me-1" name="checkmark-outline"></ion-icon>
-                                            </a>
+                                            </button>
                                         {% elif attendance.overtime_second >= 60 %}
                                             <a
                                                 type="submit"
@@ -1022,11 +1024,12 @@
                                                 <ion-icon class="me-1" name="checkmark-outline"></ion-icon>
                                             </a>
                                             <button
-                                                type="submit"
+                                                type="button"
                                                 data-ot-approve-id="{{attendance.id}}"
                                                 hidden
-                                                href=""
-                                                onclick="window.location.href='{% url 'approve-overtime' attendance.id %}'"
+                                                hx-post="{% url 'approve-overtime' attendance.id %}"
+                                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                                hx-swap="none"
                                                 title="{% trans 'Approve Overtime' %}"
                                                 class="oh-btn oh-btn--success w-100"
                                             >

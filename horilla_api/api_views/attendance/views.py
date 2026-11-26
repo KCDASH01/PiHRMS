@@ -5,6 +5,7 @@ from django import template
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMessage
+from django.db import transaction
 from django.db.models import Case, CharField, F, Value, When
 from django.http import QueryDict
 from django.shortcuts import get_object_or_404
@@ -19,6 +20,7 @@ from rest_framework.views import APIView
 from attendance.methods.corrections import approve_attendance_correction
 from attendance.methods.punches import PunchConflict, request_punch_time
 from attendance.methods.request_access import (
+    attendance_employee_read_scope,
     can_access_request_employee,
     find_request_employee,
 )
@@ -271,11 +273,16 @@ class AttendanceView(APIView):
 
     @manager_permission_required("attendance.add_attendance")
     def post(self, request):
+        employee_id = request.data.get("employee_id")
+        if employee_id is not None and not can_access_request_employee(
+            request, find_request_employee(employee_id), "attendance.add_attendance",
+            allow_self_with_permission=True,
+        ):
+            raise PermissionDenied
         serializer = AttendanceSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=200)
-        employee_id = request.data.get("employee_id")
         attendance_date = request.data.get("attendance_date", date.today())
         if Attendance.objects.filter(
             employee_id=employee_id, attendance_date=attendance_date
@@ -293,12 +300,24 @@ class AttendanceView(APIView):
         return Response(serializer.errors, status=400)
 
     @method_decorator(permission_required("attendance.change_attendance"))
+    @transaction.atomic
     def put(self, request, pk):
         try:
-            attendance = Attendance.objects.get(id=pk)
+            attendance = Attendance.objects.select_for_update(of=("self",)).get(id=pk)
         except Attendance.DoesNotExist:
             return Response({"detail": _("Attendance record not found.")}, status=404)
 
+        permission = "attendance.change_attendance"
+        if not can_access_request_employee(
+            request, attendance.employee_id, permission, allow_self_with_permission=True
+        ):
+            raise PermissionDenied
+        employee_id = request.data.get("employee_id")
+        if employee_id is not None and not can_access_request_employee(
+            request, find_request_employee(employee_id), permission,
+            allow_self_with_permission=True,
+        ):
+            raise PermissionDenied
         serializer = AttendanceSerializer(instance=attendance, data=request.data)
 
         if serializer.is_valid():
@@ -362,9 +381,12 @@ class ValidateAttendanceView(APIView):
     permission_classes = [IsAuthenticated]
 
     @approver_permission_required(Attendance, "attendance.change_attendance")
+    @transaction.atomic
     def put(self, request, pk):
-        attendance = Attendance.objects.filter(id=pk).update(attendance_validated=True)
-        attendance = Attendance.objects.filter(id=pk).first()
+        attendance = get_object_or_404(Attendance.objects.select_for_update(of=("self",)), pk=pk)
+        if not can_access_request_employee(request, attendance.employee_id, "attendance.change_attendance"):
+            raise PermissionDenied
+        Attendance.objects.filter(pk=attendance.pk).update(attendance_validated=True)
         try:
             notify.send(
                 request.user.employee_get,
@@ -393,7 +415,11 @@ class OvertimeApproveView(APIView):
     permission_classes = [IsAuthenticated]
 
     @approver_permission_required(Attendance, "attendance.change_attendance")
+    @transaction.atomic
     def put(self, request, pk):
+        attendance = get_object_or_404(Attendance.objects.select_for_update(of=("self",)), pk=pk)
+        if not can_access_request_employee(request, attendance.employee_id, "attendance.change_attendance"):
+            raise PermissionDenied
         try:
             attendance = Attendance.objects.filter(id=pk).update(
                 attendance_overtime_approve=True
@@ -401,7 +427,6 @@ class OvertimeApproveView(APIView):
         except Exception as E:
             return Response({"error": str(E)}, status=400)
 
-        attendance = Attendance.objects.filter(id=pk).first()
         try:
             notify.send(
                 request.user.employee_get,
@@ -687,7 +712,11 @@ class LateComeEarlyOutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        data = LateComeEarlyOutFilter(request.GET)
+        employees = attendance_employee_read_scope(request, "attendance.view_attendancelatecomeearlyout")
+        queryset = AttendanceLateComeEarlyOut.objects.filter(
+            attendance_id__employee_id_id__in=employees.values("pk")
+        )
+        data = LateComeEarlyOutFilter(request.GET, queryset=queryset)
         serializer = AttendanceLateComeEarlyOutSerializer(data.qs, many=True)
         return Response(serializer.data, status=200)
 
@@ -711,7 +740,8 @@ class AttendanceActivityView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        data = AttendanceActivity.objects.all()
+        employees = attendance_employee_read_scope(request, "attendance.view_attendanceactivity")
+        data = AttendanceActivity.objects.filter(employee_id_id__in=employees.values("pk"))
         serializer = AttendanceActivitySerializer(data, many=True)
         return Response(serializer.data, status=200)
 

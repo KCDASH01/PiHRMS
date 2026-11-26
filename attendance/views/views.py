@@ -48,6 +48,7 @@ from django.utils.timezone import now
 from django.utils.translation import gettext as __
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext_noop
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 from PIL import Image
 from xlsxwriter.utility import xl_range
@@ -76,7 +77,11 @@ from attendance.forms import (
     LateComeEarlyOutExportForm,
     NewRequestForm,
 )
-from attendance.methods.request_access import can_access_request_employee
+from attendance.methods.request_access import (
+    can_access_request_employee,
+    can_approve_daily_attendance,
+    can_write_attendance_employees,
+)
 from attendance.methods.utils import (
     Request,
     attendance_day_checking,
@@ -225,6 +230,10 @@ def attendance_create(request):
     """
     This method is used to render attendance create form and save if it is valid
     """
+    if request.method == "POST" and not can_write_attendance_employees(
+        request, request.POST.getlist("employee_id"), "attendance.add_attendance"
+    ):
+        return handle_no_permission(request)
     if request.GET.get("previous_url"):
         data = request.GET.dict()
         employee_list = request.GET.getlist("employee_id")
@@ -1376,23 +1385,6 @@ def validation_condition_delete(request, obj_id):
     return redirect("/attendance/validation-condition-view")
 
 
-def _may_act_on_attendance(request, attendance):
-    """
-    True when the caller may validate or approve this attendance record.
-
-    ``manager_can_enter`` admits anyone who manages *any* employee, so a route
-    that acts on a client-named record must also check that the caller is the
-    reporting manager of that record's employee, unless they hold the
-    ``attendance.change_attendance`` permission.
-    """
-    user = request.user
-    return (
-        user.is_superuser
-        or user.has_perm("attendance.change_attendance")
-        or is_reportingmanger(request, attendance)
-    )
-
-
 @login_required
 @require_http_methods(["POST"])
 @manager_can_enter("attendance.change_attendance")
@@ -1409,21 +1401,18 @@ def validate_bulk_attendance(request):
     for obj_id in ids:
         try:
             attendance = Attendance.objects.get(id=obj_id)
-            if attendance.employee_id.id != request.user.employee_get.id and (
-                _may_act_on_attendance(request, attendance)
-            ):
+            if can_approve_daily_attendance(request, attendance.employee_id):
                 filtered_ids.append(obj_id)
         except Attendance.DoesNotExist:
             error_messages.append(_("Attendance not found"))
         except (OverflowError, ValueError):
             error_messages.append(_("Invalid attendance ID"))
 
-    if request.user.is_superuser:
-        filtered_ids = ids
-
     for obj_id in filtered_ids:
         try:
             attendance = Attendance.objects.get(id=obj_id)
+            if not can_approve_daily_attendance(request, attendance.employee_id):
+                continue
 
             if attendance.is_validate_request:
                 error_messages.append(
@@ -1494,22 +1483,8 @@ def validate_this_attendance(request, obj_id):
     """
     try:
         attendance = Attendance.objects.get(id=obj_id)
-        if not request.user.is_superuser:
-            if attendance.employee_id.id == request.user.employee_get.id:
-                messages.error(request, _("You cannot validate your own attendance."))
-                return attendance_view_redirect(request)
-            # manager_can_enter admits anyone who manages *any* employee, so
-            # scope it here: without the permission the caller must be the
-            # reporting manager of this record's employee.
-            if not request.user.has_perm("attendance.change_attendance"):
-                work_info = getattr(attendance.employee_id, "employee_work_info", None)
-                manager_id = getattr(work_info, "reporting_manager_id_id", None)
-                if manager_id != request.user.employee_get.id:
-                    messages.error(
-                        request,
-                        _("You don't have permission to validate this attendance."),
-                    )
-                    return attendance_view_redirect(request)
+        if not can_approve_daily_attendance(request, attendance.employee_id):
+            return handle_no_permission(request)
         attendance.attendance_validated = True
         # Recalculate worked hours from attendance activities before validation
         # to ensure Hours Account reflects actual worked time.
@@ -1564,8 +1539,9 @@ def revalidate_this_attendance(request, obj_id):
             request, message=_("No Attendance found matching the query.")
         )
 
-    if is_reportingmanger(request, attendance) or request.user.has_perm(
-        "attendance.change_attendance"
+    if can_access_request_employee(
+        request, attendance.employee_id, "attendance.change_attendance",
+        allow_self_with_permission=True,
     ):
         attendance.attendance_validated = False
         attendance.save()
@@ -1587,9 +1563,11 @@ def revalidate_this_attendance(request, obj_id):
     return HttpResponse("You Cannot Request for others attendance")
 
 
+@require_http_methods(["POST"])
 @login_required
+@csrf_protect
 @manager_can_enter("attendance.change_attendance")
-@require_http_methods(["GET", "POST"])
+@transaction.atomic
 def approve_overtime(request, obj_id):
     """
     This method is used to approve attendance overtime
@@ -1597,17 +1575,9 @@ def approve_overtime(request, obj_id):
         obj_id  : attendance id
     """
     try:
-        attendance = Attendance.objects.get(id=obj_id)
-        if not request.user.is_superuser:
-            if attendance.employee_id.id == request.user.employee_get.id:
-                messages.error(request, _("You cannot approve your own overtime."))
-                return attendance_view_redirect(request)
-            if not _may_act_on_attendance(request, attendance):
-                messages.error(
-                    request,
-                    _("You don't have permission to approve this overtime."),
-                )
-                return attendance_view_redirect(request)
+        attendance = Attendance.objects.select_for_update(of=("self",)).get(id=obj_id)
+        if not can_approve_daily_attendance(request, attendance.employee_id):
+            return handle_no_permission(request)
         attendance.attendance_overtime_approve = True
         attendance.save()
         urlencode = request.GET.urlencode()
@@ -1637,6 +1607,8 @@ def approve_overtime(request, obj_id):
 
 
 @login_required
+@require_http_methods(["POST"])
+@csrf_protect
 @manager_can_enter("attendance.change_attendance")
 def approve_bulk_overtime(request):
     """
@@ -1662,13 +1634,7 @@ def approve_bulk_overtime(request):
 
     candidates = []
     for attendance in found.values():
-        # Superusers may approve their own overtime; everyone else may not.
-        if (
-            not request.user.is_superuser
-            and attendance.employee_id.employee_user_id == request.user
-        ):
-            continue
-        if not _may_act_on_attendance(request, attendance):
+        if not can_approve_daily_attendance(request, attendance.employee_id):
             continue
         candidates.append(attendance)
 
@@ -1683,7 +1649,9 @@ def approve_bulk_overtime(request):
             id__in=[attendance.pk for attendance in candidates]
         ).select_related("employee_id", "employee_id__employee_user_id")
         for attendance in fresh:
-            if attendance.attendance_overtime_approve:
+            if attendance.attendance_overtime_approve or not can_approve_daily_attendance(
+                request, attendance.employee_id
+            ):
                 continue
             try:
                 with transaction.atomic():
@@ -1741,7 +1709,8 @@ def approve_bulk_overtime(request):
 
 @login_required
 @hx_request_required
-# @manager_can_enter("attendance.change_attendance")
+@manager_can_enter("attendance.change_attendance")
+@transaction.atomic
 def attendance_add_to_batch(request):
     """
     This method is used to add attendance to a batch
@@ -1754,13 +1723,27 @@ def attendance_add_to_batch(request):
             messages.error(request, _("Something went wrong."))
             return HorillaRedirect(request)
         # Remove brackets and quotes, then split and convert to integers
-        int_ids = [int(x.strip().strip("'")) for x in ids.strip("[]").split(",")]
+        try:
+            int_ids = {int(x.strip().strip("'")) for x in ids.strip("[]").split(",")}
+        except ValueError:
+            return HttpResponse(_("Invalid attendance selection."), status=400)
+        attendances = list(
+            Attendance.objects.filter(pk__in=int_ids)
+            .order_by("pk").select_for_update(of=("self",))
+        )
+        if len(attendances) != len(int_ids) or any(
+            not can_access_request_employee(
+                request, attendance.employee_id, "attendance.change_attendance",
+                allow_self_with_permission=True,
+            )
+            for attendance in attendances
+        ):
+            return handle_no_permission(request)
         batch_id = request.POST.get("batch_attendance_id")
         if batch_id:
             batch = BatchAttendance.objects.filter(id=batch_id).first()
-            for id in int_ids:
+            for attendance_req in attendances:
                 try:
-                    attendance_req = Attendance.objects.filter(id=id).first()
                     attendance_req.batch_attendance_id = batch
                     attendance_req.save()
                 except Exception as e:
