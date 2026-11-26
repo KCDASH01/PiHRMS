@@ -29,7 +29,7 @@ from zk import exception as zk_exception
 
 from attendance.methods.utils import Request
 from attendance.models import AttendanceActivity
-from attendance.views.clock_in_out import clock_in, clock_out
+from attendance.views.clock_in_out import clock_in_from_source, clock_out_from_source
 from base.methods import get_key_instances, get_pagination
 from employee.models import Employee, EmployeeWorkInformation
 from horilla.decorators import (
@@ -44,7 +44,11 @@ from horilla.scheduling import register_job
 from horilla.settings import TIME_ZONE
 
 from .anviz import CrossChexCloudAPI
-from .cosec import COSECBiometric
+from .cosec import (
+    COSECBiometric,
+    cosec_attendance_ingestion_enabled,
+    cosec_ingestion_disabled_response,
+)
 from .dahua import DahuaAPI
 from .etimeoffice import ETimeOfficeAPI
 from .filters import BiometricDeviceFilter
@@ -182,7 +186,7 @@ class ZKBioAttendance(Thread):
                                 if bio_id:
                                     if punch_code in {0, 3, 4}:
                                         try:
-                                            clock_in(
+                                            clock_in_from_source(
                                                 Request(
                                                     user=bio_id.employee_id.employee_user_id,
                                                     date=date,
@@ -198,7 +202,7 @@ class ZKBioAttendance(Thread):
                                             continue
                                     else:
                                         try:
-                                            clock_out(
+                                            clock_out_from_source(
                                                 Request(
                                                     user=bio_id.employee_id.employee_user_id,
                                                     date=date,
@@ -245,6 +249,8 @@ class COSECBioAttendanceThread(Thread):
         self._stop_event = Event()
 
     def run(self):
+        if not cosec_attendance_ingestion_enabled():
+            return
         try:
             device = BiometricDevices.objects.get(id=self.device_id)
             if not device.is_live:
@@ -267,7 +273,7 @@ class COSECBioAttendanceThread(Thread):
                 device.bio_password,
                 timeout=10,
             )
-            while not self._stop_event.is_set():
+            while not self._stop_event.is_set() and cosec_attendance_ingestion_enabled():
                 attendances = cosec.get_attendance_events(
                     last_fetch_roll_ovr_count, int(last_fetch_seq_number) + 1
                 )
@@ -276,6 +282,8 @@ class COSECBioAttendanceThread(Thread):
                     continue
 
                 for attendance in attendances:
+                    if not cosec_attendance_ingestion_enabled():
+                        return
                     ref_user_id = attendance["detail-1"]
                     employee = BiometricEmployees.objects.filter(
                         ref_user_id=ref_user_id
@@ -299,14 +307,16 @@ class COSECBioAttendanceThread(Thread):
                         datetime=django_timezone.make_aware(attendance_datetime),
                     )
                     try:
+                        if not cosec_attendance_ingestion_enabled():
+                            return
                         if punch_code in ["1", "3", "5", "7", "9", "0"]:
-                            clock_in(request_data)
+                            clock_in_from_source(request_data)
                         elif punch_code in ["2", "4", "6", "8", "10"]:
-                            clock_out(request_data)
+                            clock_out_from_source(request_data)
                     except Exception as error:
                         logger.error("Error processing attendance: ", error)
 
-                if attendances:
+                if attendances and cosec_attendance_ingestion_enabled():
                     last_attendance = attendances[-1]
                     last_fetch_seq_number = last_attendance["seq-No"]
                     last_fetch_roll_ovr_count = last_attendance["roll-over-count"]
@@ -321,6 +331,8 @@ class COSECBioAttendanceThread(Thread):
                 self._stop_event.wait(2)
 
         except Exception as error:
+            if not cosec_attendance_ingestion_enabled():
+                return
             device = BiometricDevices.objects.get(id=self.device_id)
             device.is_live = False
             device.save()
@@ -397,6 +409,12 @@ def biometric_device_schedule(request, device_id):
     - HttpResponse: HTML response indicating success or failure of the scheduling operation.
     """
     device = BiometricDevices.objects.get(id=device_id)
+    if (
+        request.method == "POST"
+        and device.machine_type == "cosec"
+        and not cosec_attendance_ingestion_enabled()
+    ):
+        return cosec_ingestion_disabled_response()
     initial_data = {"scheduler_duration": device.scheduler_duration}
     scheduler_form = BiometricDeviceSchedulerForm(initial=initial_data)
     context = {
@@ -972,7 +990,11 @@ def biometric_device_fetch_logs(request, device_id=None):
             )
 
     elif device.machine_type == "cosec":
+        if not cosec_attendance_ingestion_enabled():
+            return cosec_ingestion_disabled_response()
         attendance_count = cosec_biometric_attendance_logs(device)
+        if attendance_count is None and not cosec_attendance_ingestion_enabled():
+            return cosec_ingestion_disabled_response()
         if isinstance(attendance_count, int):
             script = render_connection_response(
                 _("Logs Fetched Successfully"),
@@ -2062,6 +2084,8 @@ def biometric_device_live(request):
     device_id = request.GET.get("deviceId")
     device = BiometricDevices.objects.get(id=device_id)
     is_live = is_live == "on"
+    if is_live and device.machine_type == "cosec" and not cosec_attendance_ingestion_enabled():
+        return cosec_ingestion_disabled_response()
     if is_live:
         port_no = device.port
         machine_ip = device.machine_ip
@@ -2095,6 +2119,8 @@ def biometric_device_live(request):
                     timeout=10,
                 )
                 response = cosec.basic_config()
+                if not cosec_attendance_ingestion_enabled():
+                    return cosec_ingestion_disabled_response()
                 if response.get("app"):
                     device.is_live = True
                     device.is_scheduler = False
@@ -2270,9 +2296,9 @@ def zk_biometric_attendance_logs(device_or_devices):
             )
             try:
                 if punch_code in {0, 3, 4}:
-                    clock_in(request_data)
+                    clock_in_from_source(request_data)
                 elif punch_code in {1, 2, 5}:
-                    clock_out(request_data)
+                    clock_out_from_source(request_data)
             except Exception:
                 logger.error(
                     f"[Device: {attendance.device.name}] Punch processing error",
@@ -2350,21 +2376,21 @@ def anviz_biometric_attendance_logs(device):
             # --------------------------------------------------
             if device.device_direction == "system":
                 if punch_code in {0, 128}:
-                    clock_in(request_data)
+                    clock_in_from_source(request_data)
                 else:
-                    clock_out(request_data)
+                    clock_out_from_source(request_data)
 
             # --------------------------------------------------
             # FORCE IN DEVICE
             # --------------------------------------------------
             elif device.device_direction == "in":
-                clock_in(request_data)
+                clock_in_from_source(request_data)
 
             # --------------------------------------------------
             # FORCE OUT DEVICE
             # --------------------------------------------------
             elif device.device_direction == "out":
-                clock_out(request_data)
+                clock_out_from_source(request_data)
 
             # --------------------------------------------------
             # ALTERNATE IN / OUT DEVICE
@@ -2381,9 +2407,9 @@ def anviz_biometric_attendance_logs(device):
 
                 # If no record or last record has clock_out → IN
                 if not last_activity or last_activity.clock_out:
-                    clock_in(request_data)
+                    clock_in_from_source(request_data)
                 else:
-                    clock_out(request_data)
+                    clock_out_from_source(request_data)
 
             processed_count += 1
 
@@ -2409,6 +2435,8 @@ def cosec_biometric_attendance_logs(device):
     """
     Retrieves and processes attendance logs from a COSEC biometric device.
     """
+    if not cosec_attendance_ingestion_enabled():
+        return None
     device_args = COSECAttendanceArguments.objects.filter(device_id=device).first()
     last_fetch_roll_ovr_count = (
         int(device_args.last_fetch_roll_ovr_count) if device_args else 0
@@ -2430,6 +2458,8 @@ def cosec_biometric_attendance_logs(device):
         return
 
     for attendance in attendances:
+        if not cosec_attendance_ingestion_enabled():
+            return None
         ref_user_id = attendance["detail-1"]
         employee = BiometricEmployees.objects.filter(ref_user_id=ref_user_id).first()
         if not employee:
@@ -2450,15 +2480,19 @@ def cosec_biometric_attendance_logs(device):
         )
 
         try:
+            if not cosec_attendance_ingestion_enabled():
+                return None
             if punch_code in ["1", "3", "5", "7", "9", "0"]:
-                clock_in(request_data)
+                clock_in_from_source(request_data)
             elif punch_code in ["2", "4", "6", "8", "10"]:
-                clock_out(request_data)
+                clock_out_from_source(request_data)
             else:
                 pass
         except Exception as error:
             logger.error("Error processing attendance: ", error)
 
+    if not cosec_attendance_ingestion_enabled():
+        return None
     if attendances:
         last_attendance = attendances[-1]
         COSECAttendanceArguments.objects.update_or_create(
@@ -2481,6 +2515,8 @@ def cosec_biometric_attendance_scheduler(device_id):
     Args:
         device_id (uuid): The ID of the COSEC biometric device.
     """
+    if not cosec_attendance_ingestion_enabled():
+        return
     device = BiometricDevices.find(device_id)
     if device and device.is_scheduler:
         cosec_biometric_attendance_logs(device)
@@ -2545,9 +2581,9 @@ def dahua_biometric_attendance_logs(device):
             )
 
             if last_none_activity:
-                clock_out(request_data)
+                clock_out_from_source(request_data)
             else:
-                clock_in(request_data)
+                clock_in_from_source(request_data)
 
         if logs.get("records"):
             last_log = logs["records"][-1]
@@ -2624,9 +2660,9 @@ def etimeoffice_biometric_attendance_logs(device):
         )
 
         if last_none_activity:
-            clock_out(request_data)
+            clock_out_from_source(request_data)
         else:
-            clock_in(request_data)
+            clock_in_from_source(request_data)
 
     last_log = punch_data[0]
     device.last_fetch_date, device.last_fetch_time = (

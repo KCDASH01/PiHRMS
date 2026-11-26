@@ -7,6 +7,9 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+BROWSER_CHECKOUT_SALT = "attendance.browser.checkout"
+
+
 class PunchConflict(ValidationError):
     """A punch cannot be assigned safely with the available records."""
 
@@ -147,8 +150,8 @@ def active_attendance(employee, activity):
     return attendance
 
 
-def current_open_attendance(employee, today):
-    """Return the daily record eligible for the header's Check-Out action."""
+def current_open_punch(employee, today):
+    """Return the open activity and its daily record for the clock controls."""
     activities = list(open_sessions(employee).order_by("pk")[:2])
     if len(activities) != 1:
         return None
@@ -156,6 +159,11 @@ def current_open_attendance(employee, today):
     if activity.attendance_date not in (today, today - timedelta(days=1)):
         return None
     try:
-        return active_attendance(employee, activity)
+        return activity, active_attendance(employee, activity)
     except PunchConflict:
         return None
+
+
+def current_open_attendance(employee, today):
+    punch = current_open_punch(employee, today)
+    return punch[1] if punch else None

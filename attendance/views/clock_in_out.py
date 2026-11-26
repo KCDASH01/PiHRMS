@@ -8,12 +8,17 @@ import ipaddress
 import logging
 from datetime import datetime, timedelta, timezone as utc_timezone
 
-from django.contrib import messages
+from django.core import signing
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
 
 from attendance.methods.punches import (
+    BROWSER_CHECKOUT_SALT,
     PunchConflict,
     active_attendance,
     attendance_sessions,
@@ -26,6 +31,7 @@ from attendance.methods.punches import (
     worked_session_seconds,
 )
 from attendance.methods.utils import (
+    browser_clock_setting,
     employee_exists,
     format_time,
     geofence_denial_web,
@@ -36,15 +42,14 @@ from attendance.methods.utils import (
 from attendance.models import (
     Attendance,
     AttendanceActivity,
-    AttendanceGeneralSetting,
     AttendanceLateComeEarlyOut,
     GraceTime,
 )
 from attendance.views.views import attendance_validate
 from base.context_processors import enable_late_come_early_out_tracking
-from base.models import AttendanceAllowedIP, Company, EmployeeShiftDay
+from base.models import AttendanceAllowedIP, EmployeeShiftDay
+from employee.models import EmployeeWorkInformation
 from horilla.decorators import hx_request_required, login_required
-from horilla.http.response import HorillaRedirect
 
 logger = logging.getLogger(__name__)
 
@@ -206,116 +211,21 @@ def clock_in_attendance_and_activity(
     return attendance
 
 
-@login_required
-@hx_request_required
-def clock_in(request):
-    """
-    This method is used to mark the attendance once per a day and multiple attendance activities.
-    """
-    # check wether check in/check out feature is enabled
-    selected_company = request.session.get("selected_company")
-    if selected_company == "all":
-        company = None
-        attendance_general_settings = AttendanceGeneralSetting.objects.filter(
-            company_id=None
-        ).first()
-    else:
-        company = Company.objects.filter(id=selected_company).first()
-        attendance_general_settings = AttendanceGeneralSetting.objects.filter(
-            company_id=company
-        ).first()
-    # request.__dict__.get("datetime")' used to check if the request is from a biometric device
-    if (
-        attendance_general_settings
-        and attendance_general_settings.enable_check_in
-        or request.__dict__.get("datetime")
-    ):
-        allowed_attendance_ips = AttendanceAllowedIP.objects.filter(
-            company_id=company
-        ).first()
-
-        if (
-            not request.__dict__.get("datetime")
-            and allowed_attendance_ips
-            and allowed_attendance_ips.is_enabled
-        ):
-            # get_client_ip() only trusts X-Forwarded-For as far as the
-            # deployment's declared proxy count -- taking the client-supplied
-            # header at face value let anyone claim to be on the office
-            # network.
-            ip = get_client_ip(request)
-
-            allowed_ips = (allowed_attendance_ips.additional_data or {}).get(
-                "allowed_ips", []
-            )
-            ip_allowed = False
-            for allowed_ip in allowed_ips:
-                try:
-                    if ipaddress.ip_address(ip) in ipaddress.ip_network(
-                        allowed_ip, strict=False
-                    ):
-                        ip_allowed = True
-                        break
-                except ValueError:
-                    continue
-
-            if not ip_allowed:
-                messages.error(
-                    request,
-                    _("Check-In Restricted: Your current network is not authorized "),
-                )
-                return HorillaRedirect(request)
-
-        if not request.__dict__.get("datetime"):
-            # The mobile/API clock-in already enforces a configured
-            # geo-fence; this view didn't, so an employee outside the fence
-            # could still punch in from a browser.
-            geofence_error = geofence_denial_web(request, company)
-            if geofence_error:
-                messages.error(request, geofence_error)
-                return HorillaRedirect(request)
-
-        employee, work_info = employee_exists(request)
-        if employee and work_info is not None:
-            try:
-                clock_in_attendance_and_activity(employee, work_info, request_punch_time(request))
-            except PunchConflict as error:
-                if request.__dict__.get("datetime"):
-                    logger.warning("Check-in held for employee %s: %s", employee.pk, error.message)
-                else:
-                    messages.error(request, error.message)
-            # Refresh employee from DB so template re-evaluates is_clocked_in correctly
-            employee.refresh_from_db()
-            return render(
-                request, "attendance/components/in_out_component.html", {"run": 1}
-            )
-        messages.error(
-            request,
-            _(
-                "Check-In Unavailable: Your employee profile or work information is incomplete."
-            ),
-        )
-        return HorillaRedirect(request)
-    else:
-        messages.error(
-            request,
-            _(
-                "The attendance check-in/check-out feature has not been enabled for your company."
-            ),
-        )
-        return HorillaRedirect(request)
-
-
 @transaction.atomic
-def clock_out_attendance_and_activity(employee, instant):
+def clock_out_attendance_and_activity(employee, instant, *, expected_activity_id=None):
     """Close only the provable open session and update its own daily record."""
     instant = local_punch_time(instant)
     lock_punches(employee)
-    active = list(open_sessions(employee).order_by("pk")[:2])
-    if not active:
-        return None  # A previously completed check-out can be safely retried.
-    if len(active) != 1:
+    sessions = open_sessions(employee).select_for_update(of=("self",)).order_by("pk")
+    active = list(sessions[:2])
+    if len(active) > 1:
         raise PunchConflict(_("Multiple open sessions require attendance review."))
+    if expected_activity_id is not None and (
+        not active or active[0].pk != expected_activity_id
+    ):
+        raise PunchConflict(_("This checkout is no longer current. Refresh attendance and try again."))
+    if not active:
+        return None  # A previously completed internal/API check-out can be retried.
     activity = active[0]
     attendance = active_attendance(employee, activity)
     started = session_start(activity)
@@ -424,94 +334,110 @@ def early_out(attendance, start_time, end_time, shift):
         _clear_exception(attendance, "early_out")
 
 
+def clock_in_from_source(request):
+    """Record a trusted internal event from a device or activity import."""
+    employee, work_info = employee_exists(request)
+    if employee and work_info is not None and employee.is_active and request.user.is_active:
+        try:
+            return clock_in_attendance_and_activity(employee, work_info, request_punch_time(request))
+        except PunchConflict as error:
+            logger.warning("Check-in held for employee %s: %s", employee.pk, error.message)
+
+
+def clock_out_from_source(request):
+    """Record a trusted internal event from a device, import or scheduler."""
+    employee, work_info = employee_exists(request)
+    if employee and work_info is not None and employee.is_active and request.user.is_active:
+        try:
+            return clock_out_attendance_and_activity(employee, request_punch_time(request))
+        except PunchConflict as error:
+            logger.warning("Check-out held for employee %s: %s", employee.pk, error.message)
+
+
+def _browser_punch_policy(request, company):
+    attendance_setting = browser_clock_setting(company.pk)
+    if attendance_setting is None or not attendance_setting.enable_check_in:
+        return _("The attendance check-in/check-out feature has not been enabled for your company.")
+
+    allowed_ips = AttendanceAllowedIP.objects.filter(company_id=company).first()
+    if allowed_ips is None:
+        allowed_ips = AttendanceAllowedIP.objects.filter(company_id__isnull=True).first()
+    if allowed_ips and allowed_ips.is_enabled:
+        address = get_client_ip(request)
+        for network in (allowed_ips.additional_data or {}).get("allowed_ips", []):
+            try:
+                if ipaddress.ip_address(address) in ipaddress.ip_network(network, strict=False):
+                    break
+            except ValueError:
+                continue
+        else:
+            return _("Attendance restricted: Your current network is not authorized.")
+    return geofence_denial_web(request, company, coordinates=request.POST)
+
+
+def _browser_clock_error(message, status):
+    return HttpResponse(
+        message,
+        status=status,
+        content_type="text/plain; charset=utf-8",
+        headers={"X-Attendance-Error": "true"},
+    )
+
+
+def _browser_clock(request, *, checkout=False):
+    employee = request.user.employee_get
+    try:
+        with transaction.atomic():
+            lock_punches(employee)
+            employee.refresh_from_db(fields=("employee_user_id", "is_active"))
+            if not employee.is_active or employee.employee_user_id_id != request.user.pk:
+                return _browser_clock_error(_("Your employee account cannot record attendance."), 403)
+            work_info = EmployeeWorkInformation._base_manager.select_for_update().filter(
+                employee_id=employee
+            ).first()
+            company_id = work_info.company_id_id if work_info else None
+            selected = request.session.get("selected_company")
+            if company_id is None or selected not in ("all", company_id, str(company_id)):
+                return _browser_clock_error(_("Select your own company to record attendance."), 403)
+
+            if checkout:
+                try:
+                    owner, tenant, activity_id = signing.loads(
+                        request.POST.get("session_id", ""), salt=BROWSER_CHECKOUT_SALT
+                    )
+                except signing.BadSignature:
+                    return _browser_clock_error(_("A valid checkout session is required."), 400)
+                if (owner, tenant) != (employee.pk, company_id):
+                    return _browser_clock_error(_("This checkout does not belong to you."), 403)
+
+            denial = _browser_punch_policy(request, work_info.company_id)
+            if denial:
+                return _browser_clock_error(denial, 403)
+
+            if checkout:
+                clock_out_attendance_and_activity(
+                    employee, timezone.now(), expected_activity_id=activity_id
+                )
+            else:
+                clock_in_attendance_and_activity(employee, work_info, timezone.now())
+    except PunchConflict as error:
+        return _browser_clock_error(error.message, 409)
+
+    employee.refresh_from_db()
+    return render(request, "attendance/components/in_out_component.html", {"run": 1})
+
+
+@require_POST
 @login_required
+@csrf_protect
+@hx_request_required
+def clock_in(request):
+    return _browser_clock(request)
+
+
+@require_POST
+@login_required
+@csrf_protect
 @hx_request_required
 def clock_out(request):
-    """
-    This method is used to set the out date and time for attendance and attendance activity
-    """
-    # check wether check in/check out feature is enabled
-    selected_company = request.session.get("selected_company")
-    if selected_company == "all":
-        company = None
-        attendance_general_settings = AttendanceGeneralSetting.objects.filter(
-            company_id=None
-        ).first()
-    else:
-        company = Company.objects.filter(id=selected_company).first()
-        attendance_general_settings = AttendanceGeneralSetting.objects.filter(
-            company_id=company
-        ).first()
-    if (
-        attendance_general_settings
-        and attendance_general_settings.enable_check_in
-        or request.__dict__.get("datetime")
-    ):
-        allowed_attendance_ips = AttendanceAllowedIP.objects.filter(
-            company_id=company
-        ).first()
-
-        if (
-            not request.__dict__.get("datetime")
-            and allowed_attendance_ips
-            and allowed_attendance_ips.is_enabled
-        ):
-            # get_client_ip() only trusts X-Forwarded-For as far as the
-            # deployment's declared proxy count -- taking the client-supplied
-            # header at face value let anyone claim to be on the office
-            # network.
-            ip = get_client_ip(request)
-
-            allowed_ips = (allowed_attendance_ips.additional_data or {}).get(
-                "allowed_ips", []
-            )
-            ip_allowed = False
-            for allowed_ip in allowed_ips:
-                try:
-                    if ipaddress.ip_address(ip) in ipaddress.ip_network(
-                        allowed_ip, strict=False
-                    ):
-                        ip_allowed = True
-                        break
-                except ValueError:
-                    continue
-
-            if not ip_allowed:
-                messages.error(
-                    request,
-                    _("Check-Out Restricted: Your current network is not authorized"),
-                )
-                return HorillaRedirect(request)
-
-        if not request.__dict__.get("datetime"):
-            geofence_error = geofence_denial_web(request, company)
-            if geofence_error:
-                messages.error(request, geofence_error)
-                return HorillaRedirect(request)
-
-        employee, work_info = employee_exists(request)
-        if not employee or work_info is None:
-            messages.error(request, _("Check-Out Unavailable: Your employee profile or work information is incomplete."))
-            return HorillaRedirect(request)
-        try:
-            clock_out_attendance_and_activity(employee, request_punch_time(request))
-        except PunchConflict as error:
-            if request.__dict__.get("datetime"):
-                logger.warning("Check-out held for employee %s: %s", employee.pk, error.message)
-            else:
-                messages.error(request, error.message)
-
-        # Refresh employee from DB so template re-evaluates is_clocked_in correctly
-        employee.refresh_from_db()
-        return render(
-            request, "attendance/components/in_out_component.html", {"run": 1}
-        )
-
-    else:
-        messages.error(
-            request,
-            _(
-                "The attendance check-in/check-out feature has not been enabled for your company."
-            ),
-        )
-        return HorillaRedirect(request)
+    return _browser_clock(request, checkout=True)

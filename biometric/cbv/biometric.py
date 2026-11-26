@@ -15,6 +15,10 @@ from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 from zk import ZK
 
+from biometric.cosec import (
+    cosec_attendance_ingestion_enabled,
+    cosec_ingestion_disabled_response,
+)
 from biometric.filters import BiometricDeviceFilter
 from biometric.forms import BiometricDeviceForm, BiometricDeviceSchedulerForm
 from biometric.models import BiometricDevices
@@ -263,6 +267,8 @@ class BiometricSheduleForm(HorillaFormView):
             if form.instance.pk:
                 message = _("Biometric device updated successfully.")
                 device = BiometricDevices.objects.get(id=self.form.instance.pk)
+                if device.machine_type == "cosec" and not cosec_attendance_ingestion_enabled():
+                    return cosec_ingestion_disabled_response()
 
                 if device.machine_type == "zk":
                     try:

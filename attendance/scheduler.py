@@ -10,7 +10,7 @@ from horilla.scheduling import register_job
 def auto_punch_out():
     from attendance.methods.utils import Request
     from attendance.models import Attendance, AttendanceActivity
-    from attendance.views.clock_in_out import clock_out
+    from attendance.views.clock_in_out import clock_out_from_source
     from base.models import EmployeeShiftSchedule
 
     automatic_check_out_shifts = EmployeeShiftSchedule.objects.filter(
@@ -50,7 +50,7 @@ def auto_punch_out():
 
                 if combined_datetime < timezone.now():
                     try:
-                        clock_out(
+                        clock_out_from_source(
                             Request(
                                 user=attendance.employee_id.employee_user_id,
                                 date=date,

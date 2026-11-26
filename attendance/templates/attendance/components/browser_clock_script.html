@@ -1,0 +1,53 @@
+<p data-clock-error role="alert" hidden></p>
+<script>
+    if (!window.attendanceClockHandlersBound) {
+        window.attendanceClockHandlersBound = true;
+        document.addEventListener("click", function (event) {
+            const button = event.target.closest(".geo-clock-btn");
+            if (!button) return;
+            event.preventDefault();
+
+            const url = button.dataset.clockUrl;
+            const headers = JSON.parse(button.getAttribute("hx-headers"));
+            const values = {};
+            if (button.dataset.sessionId) values.session_id = button.dataset.sessionId;
+            button.disabled = true;
+
+            function submit(position) {
+                if (position) {
+                    values.latitude = position.coords.latitude;
+                    values.longitude = position.coords.longitude;
+                }
+                htmx.ajax("POST", url, {
+                    source: button,
+                    target: "#attendance-activity-container",
+                    swap: "innerHTML",
+                    headers: headers,
+                    values: values,
+                }).finally(function () {
+                    button.disabled = false;
+                });
+            }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(submit, () => submit(), {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                });
+            } else {
+                submit();
+            }
+        });
+
+        document.addEventListener("htmx:responseError", function (event) {
+            const { target, xhr } = event.detail;
+            if (!target || target.id !== "attendance-activity-container" ||
+                xhr.getResponseHeader("X-Attendance-Error") !== "true") return;
+            const message = target.querySelector("[data-clock-error]");
+            if (message) {
+                message.textContent = xhr.responseText;
+                message.hidden = false;
+            }
+        });
+    }
+</script>

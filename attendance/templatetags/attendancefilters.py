@@ -10,11 +10,17 @@ from datetime import datetime, timedelta
 from itertools import groupby
 
 from django import template
+from django.core import signing
 from django.forms.widgets import SelectMultiple, Textarea
 from django.template import TemplateSyntaxError
 from django.utils import timezone
 
-from attendance.methods.punches import current_open_attendance
+from attendance.methods.punches import (
+    BROWSER_CHECKOUT_SALT,
+    current_open_attendance,
+    current_open_punch,
+)
+from attendance.methods.utils import browser_clock_setting
 from attendance.models import AttendanceValidationCondition
 from attendance.views.views import strtime_seconds
 from base.models import EmployeeShiftSchedule
@@ -77,6 +83,25 @@ def is_clocked_in(user):
     return employee is not None and current_open_attendance(
         employee, timezone.localdate()
     ) is not None
+
+
+@register.filter
+def browser_clock_enabled(user):
+    employee = getattr(user, "employee_get", None)
+    company = employee.get_company() if employee else None
+    setting = browser_clock_setting(company.pk) if company else None
+    return bool(setting and setting.enable_check_in)
+
+
+@register.filter
+def browser_checkout_session(user):
+    employee = getattr(user, "employee_get", None)
+    company = employee.get_company() if employee else None
+    punch = current_open_punch(employee, timezone.localdate()) if company else None
+    if not punch:
+        return ""
+    activity, _attendance = punch
+    return signing.dumps((employee.pk, company.pk, activity.pk), salt=BROWSER_CHECKOUT_SALT)
 
 
 class DynamicRegroupNode(template.Node):

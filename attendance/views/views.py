@@ -1024,7 +1024,7 @@ def attendance_activity_bulk_delete(request):
 
 
 def process_activity_dicts(activity_dicts):
-    from attendance.views.clock_in_out import clock_in, clock_out
+    from attendance.views.clock_in_out import clock_in_from_source, clock_out_from_source
 
     if not activity_dicts:
         return []
@@ -1064,7 +1064,7 @@ def process_activity_dicts(activity_dicts):
 
         if check_in_time:
             try:
-                clock_in(
+                clock_in_from_source(
                     Request(
                         user=employee.employee_user_id,
                         date=check_in_date,
@@ -1080,7 +1080,7 @@ def process_activity_dicts(activity_dicts):
 
         if check_out_time and check_out_date:
             try:
-                clock_out(
+                clock_out_from_source(
                     Request(
                         user=employee.employee_user_id,
                         date=check_out_date,

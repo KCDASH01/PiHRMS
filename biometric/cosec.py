@@ -8,6 +8,18 @@ import xml.etree.ElementTree as ET
 from base64 import b64encode
 
 import requests
+from django.conf import settings
+from django.http import HttpResponseForbidden
+from django.utils.translation import gettext_lazy as _
+
+
+def cosec_attendance_ingestion_enabled():
+    return getattr(settings, "COSEC_ATTENDANCE_INGESTION_ENABLED", False)
+
+
+def cosec_ingestion_disabled_response():
+    return HttpResponseForbidden(_("COSEC attendance ingestion is disabled."))
+
 
 cosec_api_response_codes = {
     "0": "Successful",
@@ -737,6 +749,8 @@ class COSECBiometric:
         This method retrieves attendance events, such as punch-in and punch-out records,
         from the COSEC biometric device.
         """
+        if not cosec_attendance_ingestion_enabled():
+            return None
         url = (
             f"{self.__base_url}/events?action=getevent&roll-over-count={roll_over_count}"
             f"&seq-number={seq_num}&no-of-events={no_of_events}"

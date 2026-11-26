@@ -178,7 +178,16 @@ def get_client_ip(request):
     return client_ip(request)
 
 
-def geofence_denial_web(request, company):
+def browser_clock_setting(company_id):
+    from attendance.models import AttendanceGeneralSetting
+
+    settings_rows = AttendanceGeneralSetting.objects.all()
+    return settings_rows.filter(company_id_id=company_id).first() or (
+        settings_rows.filter(company_id__isnull=True).first()
+    )
+
+
+def geofence_denial_web(request, company, *, coordinates=None):
     """
     The web clock-in/out views' counterpart to
     horilla_api...attendance.views.geofence_denial(): that one reads
@@ -209,15 +218,19 @@ def geofence_denial_web(request, company):
     if fence is None or not fence.start:
         return None
 
+    if coordinates is None:
+        coordinates = request.GET
     try:
-        latitude = float(request.GET.get("latitude"))
-        longitude = float(request.GET.get("longitude"))
-    except (TypeError, ValueError):
+        latitude = float(coordinates.get("latitude"))
+        longitude = float(coordinates.get("longitude"))
+        if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+            raise ValueError
+        distance = geodesic((fence.latitude, fence.longitude), (latitude, longitude)).meters
+    except (TypeError, ValueError, OverflowError):
         return _(
             "Could not verify your location. Please allow location access and try again."
         )
 
-    distance = geodesic((fence.latitude, fence.longitude), (latitude, longitude)).meters
     if distance > fence.radius_in_meters:
         return _("Check-In Restricted: You are outside the permitted work location.")
     return None
